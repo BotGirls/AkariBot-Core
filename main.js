@@ -34,7 +34,7 @@ client.on('connect', function(connection) {
                                     if (acct !== "y") {
                                         post("@"+acct+" @y 終了しました。", {}, "direct");
                                     }
-                                    post("そろおち～");
+                                    post("そろおち～", {}, "public", true);
                                     change_running(0);
                                     console.log("OK:STOP:@"+acct);
                                 }
@@ -132,7 +132,7 @@ function rt(id) {
     });
 }
 
-function post(value, option = {}, visibility = "public") {
+function post(value, option = {}, visibility = "public", force) {
     var optiondata = {
         status: value,
         visibility: visibility
@@ -145,7 +145,7 @@ function post(value, option = {}, visibility = "public") {
         optiondata.in_reply_to_id = option.in_reply_to_id;
     }
     setTimeout(function () {
-        if (is_running) {
+        if (is_running || force) {
             fetch("https://" + config.domain + "/api/v1/statuses", {
                 headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
                 method: 'POST',
