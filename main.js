@@ -83,10 +83,12 @@ client.on('connect', function(connection) {
                                 }
 
                                 //たこ焼き (ちょくだいさんに無能扱いされたので)
-                                if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～)だい|(欲|ほ)しい)/i)) {
+                                if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～|う|く)だい|(欲|ほ)しい|お(願|ねが)い)/i)) {
                                     rt(json['id']);
-                                    post("@"+acct+" たこ焼きど～ぞ！\n\n" +
-                                        "[large=5x]:takoyaki:[/large]");
+                                    setTimeout(function () {
+                                        post("@"+acct+" たこ焼きど～ぞ！\n\n" +
+                                            "[large=5x]:takoyaki:[/large]");
+                                    }, 5000);
                                     console.log("OK:takoyaki:"+acct);
                                 }
                             }
