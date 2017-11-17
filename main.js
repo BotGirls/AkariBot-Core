@@ -51,7 +51,7 @@ client.on('connect', function(connection) {
                             if (text.match(/(a!|あかり)/i)) {
                                 //神崎を埋める
                                 if (text.match(/埋め(たい|ろ|て)/i)) {
-                                    let name = "", postm = 0;
+                                    let name = "", postm = 0, postd = 0;
 
                                     if (json['mentions'][0]) {
                                         if (json['mentions'][0]['acct'] === "yuzu") {
@@ -62,14 +62,16 @@ client.on('connect', function(connection) {
                                         }
                                     } else if (text.match(/(霧島|ひなた|イキリ島)/i)) {
                                         name = "@Kirishimalab21";
-                                        postm = 1;
                                     } else if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
                                         name = "@Knzk";
-                                        postm = 1;
                                     } else {
                                         post("@"+acct+" 誰を埋めればいいかな...？\n" +
                                             "指定例: 「あかりちゃん @<埋めたいユーザID> を埋めて」\n\n" +
                                             "（霧島ひなたさん、神崎おにいさんは名前でも反応します）", {in_reply_to_id: json['id']}, "direct");
+                                    }
+                                    if (name === "@Kirishimalab21" || name === "@Knzk") {
+                                        postd = 1;
+                                        postm = 0;
                                     }
 
                                     rt(json['id']);
@@ -79,6 +81,30 @@ client.on('connect', function(connection) {
                                             ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n" +
                                             ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:");
                                         console.log("OK:埋める:"+acct);
+                                    } else if (postd) {
+                                        post(":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n" +
+                                            ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:", {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
+                                        console.log("OK:埋める(岩盤):"+acct);
                                     }
                                 }
 
