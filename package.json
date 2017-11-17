@@ -1,0 +1,27 @@
+{
+  "name": "akaribot",
+  "version": "1.0.0",
+  "description": "AkariBot is kawaii Bot!!!",
+  "main": "main.js",
+  "dependencies": {
+    "node-fetch": "^1.7.3",
+    "websocket": "^1.0.25"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuzulabo/AkariBot.git"
+  },
+  "keywords": [
+    "Mastodon-Bot"
+  ],
+  "author": "neziri_wasabi (yuzulabo)",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/yuzulabo/AkariBot/issues"
+  },
+  "homepage": "https://github.com/yuzulabo/AkariBot#readme"
+}
