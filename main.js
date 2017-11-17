@@ -42,14 +42,16 @@ client.on('connect', function(connection) {
 
                             //話題感知
                             if (text.match(/(ねじり|わさび|ねじわさ|KnzkApp|神崎丼アプリ)/i)) {
-                                //post("@y 検知しました。", {in_reply_to_id: json['id']}, "direct");
+                                post("@y ねじり検知", {in_reply_to_id: json['id']}, "direct");
                                 rt(json['id']);
                                 console.log("OK:match:"+acct);
                             }
 
                             //メイン部分
                             if (text.match(/(a!|あかり)/i)) {
-                                //神崎を埋める
+                                rt(json['id']);
+
+                                //埋める
                                 if (text.match(/埋め(たい|ろ|て)/i)) {
                                     let name = "", postm = 0, postd = 0;
 
@@ -74,7 +76,6 @@ client.on('connect', function(connection) {
                                         postm = 0;
                                     }
 
-                                    rt(json['id']);
                                     if (postm) {
                                         post(":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n" +
                                             ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
@@ -110,7 +111,6 @@ client.on('connect', function(connection) {
 
                                 //たこ焼き (ちょくだいさんに無能扱いされたので)
                                 if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～|う|く)だい|(欲|ほ)しい|お(願|ねが)い)/i)) {
-                                    rt(json['id']);
                                     setTimeout(function () {
                                         post("@"+acct+" たこ焼きど～ぞ！\n\n" +
                                             "[large=5x]:takoyaki:[/large]");
