@@ -1,4 +1,5 @@
 let is_running = 1;
+let eti = 0;
 let config = require('./config');
 let fetch = require('node-fetch');
 
@@ -50,14 +51,8 @@ client.on('connect', function(connection) {
                             //こおりたそと一緒にエタフォ
                             if (text.match(/エターナルフォースブリザード/i)) {
                                 post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
-                                for (let eti = 0; eti < 15; eti++) {
-                                    setTimeout(function () {
-                                        fav(json['id'], true);
-                                        setTimeout(function () {
-                                            fav(json['id']);
-                                        }, 50);
-                                    }, 100);
-                                }
+                                eti = 0;
+                                etfav(json['id']);
                                 console.log("OK:エタフォ:"+acct);
                             }
 
@@ -158,14 +153,8 @@ client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + c
 
 
 // ここからいろいろ
-function fav(id, mode) {
-    let m = "";
-    if (mode) {
-        m = "favourite";
-    } else {
-        m = "unfavourite";
-    }
-    fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/"+m, {
+function etfav(id) {
+    fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/favourite", {
         headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
         method: 'POST'
     }).then(function(response) {
@@ -177,6 +166,27 @@ function fav(id, mode) {
     }).then(function(json) {
         if (json["id"]) {
             console.log("OK:fav");
+            fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/unfavourite", {
+                headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+                method: 'POST'
+            }).then(function(response) {
+                if(response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error();
+                }
+            }).then(function(json) {
+                if (json["id"]) {
+                    console.log("OK:fav");
+                    if (eti < 20) {
+                        etfav(id);
+                    }
+                } else {
+                    console.warn("NG:fav:"+json);
+                }
+            }).catch(function(error) {
+                console.warn("NG:fav:SERVER");
+            });
         } else {
             console.warn("NG:fav:"+json);
         }
