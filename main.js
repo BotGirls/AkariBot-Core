@@ -47,6 +47,20 @@ client.on('connect', function(connection) {
                                 console.log("OK:match:"+acct);
                             }
 
+                            //こおりたそと一緒にエタフォ
+                            if (text.match(/エターナルフォースブリザード/i)) {
+                                post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
+                                for (let eti = 0; eti < 15; eti++) {
+                                    setTimeout(function () {
+                                        fav(json['id'], true);
+                                        setTimeout(function () {
+                                            fav(json['id']);
+                                        }, 50);
+                                    }, 100);
+                                }
+                                console.log("OK:エタフォ:"+acct);
+                            }
+
                             //メイン部分
                             if (text.match(/(a!|あかり)/i)) {
                                 rt(json['id']);
@@ -144,6 +158,33 @@ client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + c
 
 
 // ここからいろいろ
+function fav(id, mode) {
+    let m = "";
+    if (mode) {
+        m = "favourite";
+    } else {
+        m = "unfavourite";
+    }
+    fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/"+m, {
+        headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+        method: 'POST'
+    }).then(function(response) {
+        if(response.ok) {
+            return response.json();
+        } else {
+            throw new Error();
+        }
+    }).then(function(json) {
+        if (json["id"]) {
+            console.log("OK:fav");
+        } else {
+            console.warn("NG:fav:"+json);
+        }
+    }).catch(function(error) {
+        console.warn("NG:fav:SERVER");
+    });
+}
+
 
 function rt(id) {
     fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/reblog", {
