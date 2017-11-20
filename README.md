@@ -9,3 +9,19 @@
 7. ポテイト、たけのこ、たけのこ、コーラ！
 
 > http://install.hatenablog.com/entry/feast-of-umr より引用
+
+
+## Installation
+
+#### Require
+- NodeJS
+
+```
+git clone https://github.com/yuzulabo/AkariBot.git
+cd AkariBot
+cp config.sample.js config.js
+vi config.js # トークンなど
+
+npm install
+node main.js
+```
