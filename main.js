@@ -180,6 +180,7 @@ function etfav(id) {
                     console.log("OK:fav");
                     if (eti < 20) {
                         etfav(id);
+                        eti++;
                     }
                 } else {
                     console.warn("NG:fav:"+json);
