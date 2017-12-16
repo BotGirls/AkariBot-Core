@@ -230,29 +230,27 @@ function post(value, option = {}, visibility = "public", force) {
     if (option.in_reply_to_id) {
         optiondata.in_reply_to_id = option.in_reply_to_id;
     }
-    setTimeout(function () {
-        if (is_running || force) {
-            fetch("https://" + config.domain + "/api/v1/statuses", {
-                headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
-                method: 'POST',
-                body: JSON.stringify(optiondata)
-            }).then(function(response) {
-                if(response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error();
-                }
-            }).then(function(json) {
-                if (json["id"]) {
-                    console.log("OK:POST");
-                } else {
-                    console.warn("NG:POST:"+json);
-                }
-            }).catch(function(error) {
-                console.warn("NG:POST:SERVER");
-            });
-        }
-    }, 1000);
+    if (is_running || force) {
+        fetch("https://" + config.domain + "/api/v1/statuses", {
+            headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+            method: 'POST',
+            body: JSON.stringify(optiondata)
+        }).then(function(response) {
+            if(response.ok) {
+                return response.json();
+            } else {
+                throw new Error();
+            }
+        }).then(function(json) {
+            if (json["id"]) {
+                console.log("OK:POST");
+            } else {
+                console.warn("NG:POST:"+json);
+            }
+        }).catch(function(error) {
+            console.warn("NG:POST:SERVER");
+        });
+    }
 }
 
 function change_running(mode) {
