@@ -60,6 +60,10 @@ client.on('connect', function(connection) {
                             if (text.match(/(a!|あかり)/i)) {
                                 rt(json['id']);
 
+                                if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
+                                    URL(json);
+                                }
+
                                 //埋める
                                 if (text.match(/埋め(たい|ろ|て)/i)) {
                                     let name = "", postm = 0, postd = 0;
@@ -142,6 +146,42 @@ client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + c
 
 
 // ここからいろいろ
+function URL(json) {
+    fetch("https://" + config.domain + "/api/v1/statuses/"+json['id']+"/card", {
+        method: 'GET'
+    }).then(function(response) {
+        if(response.ok) {
+            return response.json();
+        } else {
+            throw new Error();
+        }
+    }).then(function(json_url) {
+        if (json_url["url"]) {
+            fetch("https://" + config.urlshort_api + "?akari_id=Akari_"+json['account']['acct']+"&url="+encodeURIComponent(json_url["url"]), {
+                method: 'GET'
+            }).then(function(response) {
+                if(response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error();
+                }
+            }).then(function(text) {
+                if (text.match(/http/i)) {
+                    post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
+                } else {
+                    post("@"+json['account']['acct']+" @y 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
+                    console.warn("NG:url:"+json);
+                }
+            }).catch(function(error) {
+                post("@"+json['account']['acct']+" @y APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
+                console.warn("NG:url:SERVER");
+            });
+        }
+    }).catch(function(error) {
+        console.warn("NG:url_card:SERVER");
+    });
+}
+
 function etfav(id) {
     fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/favourite", {
         headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
