@@ -147,39 +147,44 @@ client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + c
 
 // ここからいろいろ
 function URL(json) {
-    fetch("https://" + config.domain + "/api/v1/statuses/"+json['id']+"/card", {
-        method: 'GET'
-    }).then(function(response) {
-        if(response.ok) {
-            return response.json();
-        } else {
-            throw new Error();
-        }
-    }).then(function(json_url) {
-        if (json_url["url"]) {
-            fetch("https://" + config.urlshort_api + "?akari_id=Akari_"+json['account']['acct']+"&url="+encodeURIComponent(json_url["url"]), {
-                method: 'GET'
-            }).then(function(response) {
-                if(response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error();
-                }
-            }).then(function(text) {
-                if (text.match(/http/i)) {
-                    post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
-                } else {
-                    post("@"+json['account']['acct']+" @y 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
-                    console.warn("NG:url:"+json);
-                }
-            }).catch(function(error) {
-                post("@"+json['account']['acct']+" @y APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
-                console.warn("NG:url:SERVER");
-            });
-        }
-    }).catch(function(error) {
-        console.warn("NG:url_card:SERVER");
-    });
+    post("@"+json['account']['acct']+" 送信してるから数十秒まっててねー！", {in_reply_to_id: json['id']});
+    setTimeout( function() {
+        fetch("https://" + config.domain + "/api/v1/statuses/"+json['id']+"/card", {
+            method: 'GET'
+        }).then(function(response) {
+            if(response.ok) {
+                return response.json();
+            } else {
+                throw new Error();
+            }
+        }).then(function(json_url) {
+            if (json_url["url"]) {
+                fetch("https://" + config.urlshort_api + "?akari_id=Akari_"+json['account']['acct']+"&url="+encodeURIComponent(json_url["url"]), {
+                    method: 'GET'
+                }).then(function(response) {
+                    if(response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error();
+                    }
+                }).then(function(text) {
+                    if (text.match(/http/i)) {
+                        post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
+                    } else {
+                        post("@"+json['account']['acct']+" @y 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
+                        console.warn("NG:url:"+json);
+                    }
+                }).catch(function(error) {
+                    post("@"+json['account']['acct']+" @y APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
+                    console.warn("NG:url:SERVER");
+                });
+            } else {
+                post("@"+json['account']['acct']+" ...？\nURLが取得できなかった...", {in_reply_to_id: json['id']});
+            }
+        }).catch(function(error) {
+            console.warn("NG:url_card:SERVER");
+        });
+    }, 20000);
 }
 
 function etfav(id) {
