@@ -64,23 +64,12 @@ client.on('connect', function(connection) {
                                 if (text.match(/埋め(たい|ろ|て)/i)) {
                                     let name = "", postm = 0, postd = 0;
 
-                                    if (json['mentions'][0]) {
-                                        if (json['mentions'][0]['acct'] === "yuzu") {
-                                            post("自分を埋めたくないよっ！！");
-                                        } else {
-                                            name = "@" + json['mentions'][0]['acct'];
-                                            postm = 1;
-                                        }
-                                    } else if (text.match(/(霧島|ひなた|イキリ島)/i)) {
-                                        name = "@Kirishimalab21";
-                                    } else if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
-                                        name = "@Knzk";
+                                    if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
+                                        name = "knzk";
                                     } else {
-                                        post("@"+acct+" 誰を埋めればいいかな...？\n" +
-                                            "指定例: 「あかりちゃん @<埋めたいユーザID> を埋めて」\n\n" +
-                                            "（霧島ひなたさん、神崎おにいさんは名前でも反応します）", {in_reply_to_id: json['id']}, "direct");
+                                        post("@"+acct+" ごめんね、今は神埼おにいさん以外埋められないの...", {in_reply_to_id: json['id']}, "direct");
                                     }
-                                    if (name === "@Kirishimalab21" || name === "@Knzk") {
+                                    if (name === "knzk") {
                                         postd = 1;
                                         postm = 0;
                                     }
