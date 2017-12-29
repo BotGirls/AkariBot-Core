@@ -1,4 +1,4 @@
-![あかりちゃんは神埼を埋めるのが専門です](https://user-images.githubusercontent.com/14953122/34436026-4eccad86-ecd5-11e7-857d-e7d248af2b98.jpg)
+![あかりちゃんは神崎を埋めるのが専門です](https://user-images.githubusercontent.com/14953122/34436026-4eccad86-ecd5-11e7-857d-e7d248af2b98.jpg)
 by [@hasitanai](https://github.com/hasitanai)
 # AkariBot
 
