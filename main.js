@@ -60,6 +60,10 @@ client.on('connect', function(connection) {
                             if (text.match(/(a!|あかり)/i)) {
                                 rt(json['id']);
 
+                                if (text.match(/あかり \(Bot\)さん/i) && acct === "1") {
+                                    post("こおりちゃんこんにちは！");
+                                }
+
                                 if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
                                     URL(json);
                                 }
