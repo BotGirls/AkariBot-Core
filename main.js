@@ -1,22 +1,42 @@
 let is_running = 1;
-let eti = 0;
+let eti = 0, admin_i = 0, admin_pm = false;
 let config = require('./config');
 let fetch = require('node-fetch');
+let mysql = require('mysql');
+
+if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.domain || !config.token) {
+    console.log("ERROR!:config情報が不足しています！");
+    process.exit();
+}
+
+/*
+let db = mysql.createConnection({
+    host     : config.db_host,
+    user     : config.db_user,
+    password : config.db_pass,
+    database : config.db_name
+});
+db.connect();
+ */
+let db = null;
 
 let WebSocketClient = require('websocket').client;
 let client = new WebSocketClient();
 
 client.on('connectFailed', function(error) {
     console.log('Connect Error: ' + error.toString());
+    if (db) db.end();
 });
 
 client.on('connect', function(connection) {
     console.log('WebSocket Client Connected');
     connection.on('error', function(error) {
         console.log("Connection Error: " + error.toString());
+        if (db) db.end();
     });
     connection.on('close', function() {
         console.log('AkariBot Connection Closed');
+        if (db) db.end();
         //鯖落ち
     });
     connection.on('message', function(message) {
@@ -27,13 +47,21 @@ client.on('connect', function(connection) {
                 if (json['account']) {
                     let acct = json['account']['acct'];
                     let text = json['content'];
-                    if (acct !== "yuzu") {
+                    if (acct !== config.bot_id) {
                         if (is_running) {
                             //終了
-                            if (acct === "y" || acct === "imncls" || acct === "_5" || acct === "Knzk") {
-                                if (text.match(/!stop/i)) {
-                                    if (acct !== "y") {
-                                        post("@"+acct+" @y 終了しました。", {}, "direct");
+                            if (text.match(/!stop/i)) {
+                                admin_i = 0;
+                                admin_pm = false;
+
+                                while (config.bot_admin[admin_i]) {
+                                    if (acct === config.bot_admin[admin_i]) admin_pm = true;
+                                    admin_i++;
+                                }
+
+                                if (admin_pm) {
+                                    if (acct !== config.bot_admin[0]) {
+                                        post("@"+acct+" @"+config.bot_admin[0]+" 終了しました。", {}, "direct");
                                     }
                                     post("そろおち～", {}, "public", true);
                                     change_running(0);
@@ -125,10 +153,10 @@ client.on('connect', function(connection) {
                                 }
                             }
                         } else {
-                            if (acct === "y") {
+                            if (acct === config.bot_admin[0]) {
                                 if (text.match(/!start/i) || text.match(/あかり(ちゃん|たそ)(起動|おきて|起きて)/i)) {
-                                    post("おはおは～");
                                     change_running(1);
+                                    post("おはおは～");
                                 }
                             }
                         }
