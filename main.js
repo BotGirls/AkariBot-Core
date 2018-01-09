@@ -1,6 +1,7 @@
 let is_running = 1;
-let eti = 0, admin_i = 0, admin_pm = false;
+let eti = 0, admin_i = 0, admin_pm = false, is_talking = false, i = 0;
 let config = require('./config');
+let talk_data_base = require('./data/talk/base');
 let fetch = require('node-fetch');
 let mysql = require('mysql');
 
@@ -88,14 +89,17 @@ client.on('connect', function(connection) {
 
                             //メイン部分
                             if (text.match(/(a!|あかり)/i)) {
+                                is_talking = false;
                                 rt(json['id']);
 
                                 if (text.match(/あかり \(Bot\)さん/i) && acct === "1") {
                                     post("こおりちゃんこんにちは！");
+                                    is_talking = true;
                                 }
 
                                 if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
                                     URL(json);
+                                    is_talking = true;
                                 }
 
                                 //埋める
@@ -119,6 +123,7 @@ client.on('connect', function(connection) {
                                         post(umeume(20, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
                                         console.log("OK:埋める(岩盤):"+acct);
                                     }
+                                    is_talking = true;
                                 }
 
                                 //たこ焼き (ちょくだいさんに無能扱いされたので)
@@ -128,6 +133,17 @@ client.on('connect', function(connection) {
                                             "[large=5x]:takoyaki:[/large]");
                                     }, 5000);
                                     console.log("OK:takoyaki:"+acct);
+                                    is_talking = true;
+                                }
+
+                                if (!is_talking) {
+                                    i = 0;
+                                    while (talk_data_base.talkdata_base[i]) {
+                                        if (text.match(new RegExp(talk_data_base.talkdata_base[i][0], 'i'))) {
+                                            post("@"+acct+" "+talk_data_base.talkdata_base[i][1], {in_reply_to_id: json['id']});
+                                        }
+                                        i++;
+                                    }
                                 }
                             }
                         } else {
@@ -169,7 +185,6 @@ function umeume(depth, name) {
 
     res += ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n";
     res += is_bedrock ? ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:" : ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:";
-    console.log(res);
     return res;
 
 }
