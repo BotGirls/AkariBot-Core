@@ -4,7 +4,9 @@ let config = require('./config');
 let fetch = require('node-fetch');
 let mysql = require('mysql');
 
-if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.domain || !config.token) {
+if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name ||
+    !config.domain || !config.token ||
+    !config.bot_id || !config.bot_admin) {
     console.log("ERROR!:config情報が不足しています！");
     process.exit();
 }
@@ -111,34 +113,10 @@ client.on('connect', function(connection) {
                                     }
 
                                     if (postm) {
-                                        post(":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:");
+                                        post(umeume(4, name));
                                         console.log("OK:埋める:"+acct);
                                     } else if (postd) {
-                                        post(":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n" +
-                                            ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:", {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
+                                        post(umeume(20, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
                                         console.log("OK:埋める(岩盤):"+acct);
                                     }
                                 }
@@ -178,6 +156,24 @@ client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + c
 
 
 // ここからいろいろ
+function umeume(depth, name) {
+    let res = "", is_bedrock = false, i = 0;
+    if (depth > 4) is_bedrock = true;
+    depth -= 3;
+    res = ":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n";
+
+    while (i <= depth) {
+        res += ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n";
+        i++;
+    }
+
+    res += ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n";
+    res += is_bedrock ? ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:" : ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:";
+    console.log(res);
+    return res;
+
+}
+
 function URL(json) {
     post("@"+json['account']['acct']+" 送信してるから数十秒まっててねー！", {in_reply_to_id: json['id']});
     setTimeout( function() {
