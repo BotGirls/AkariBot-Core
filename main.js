@@ -11,8 +11,10 @@ if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name ||
     console.log("ERROR!:config情報が不足しています！");
     process.exit();
 }
+AkariBot_main();
 
-/*
+function AkariBot_main() {
+    /*
 let db = mysql.createConnection({
     host     : config.db_host,
     user     : config.db_user,
@@ -21,154 +23,158 @@ let db = mysql.createConnection({
 });
 db.connect();
  */
-let db = null;
+    let db = null;
 
-let WebSocketClient = require('websocket').client;
-let client = new WebSocketClient();
+    let WebSocketClient = require('websocket').client;
+    let client = new WebSocketClient();
 
-client.on('connectFailed', function(error) {
-    console.log('Connect Error: ' + error.toString());
-    if (db) db.end();
-});
-
-client.on('connect', function(connection) {
-    console.log('WebSocket Client Connected');
-    connection.on('error', function(error) {
-        console.log("Connection Error: " + error.toString());
+    client.on('connectFailed', function(error) {
+        console.log('Connect Error: ' + error.toString());
         if (db) db.end();
     });
-    connection.on('close', function() {
-        console.log('AkariBot Connection Closed');
-        if (db) db.end();
-        //鯖落ち
-    });
-    connection.on('message', function(message) {
-        //console.log(message);
-        try {
-            if (message.type === 'utf8') {
-                let json = JSON.parse(JSON.parse(message.utf8Data).payload);
-                if (json['account']) {
-                    let acct = json['account']['acct'];
-                    let text = json['content'];
-                    if (acct !== config.bot_id) {
-                        if (is_running) {
-                            //終了
-                            if (text.match(/!stop/i)) {
-                                admin_i = 0;
-                                admin_pm = false;
 
-                                while (config.bot_admin[admin_i]) {
-                                    if (acct === config.bot_admin[admin_i]) admin_pm = true;
-                                    admin_i++;
-                                }
+    client.on('connect', function(connection) {
+        console.log('WebSocket Client Connected');
+        connection.on('error', function(error) {
+            console.log("Connection Error: " + error.toString());
+            if (db) db.end();
+        });
+        connection.on('close', function() {
+            console.log('サーバとの接続が切れました。60秒後にリトライします...');
+            setTimeout( function() {
+                AkariBot_main();
+            }, 60000);
+            if (db) db.end();
+            //鯖落ち
+        });
+        connection.on('message', function(message) {
+            //console.log(message);
+            try {
+                if (message.type === 'utf8') {
+                    let json = JSON.parse(JSON.parse(message.utf8Data).payload);
+                    if (json['account']) {
+                        let acct = json['account']['acct'];
+                        let text = json['content'];
+                        if (acct !== config.bot_id) {
+                            if (is_running) {
+                                //終了
+                                if (text.match(/!stop/i)) {
+                                    admin_i = 0;
+                                    admin_pm = false;
 
-                                if (admin_pm) {
-                                    if (acct !== config.bot_admin[0]) {
-                                        post("@"+acct+" @"+config.bot_admin[0]+" 終了しました。", {}, "direct");
-                                    }
-                                    post("そろおち～", {}, "public", true);
-                                    change_running(0);
-                                    console.log("OK:STOP:@"+acct);
-                                }
-                            }
-
-                            //話題感知
-                            if (text.match(/(ねじり|わさび|ねじわさ|KnzkApp|神崎丼アプリ)/i)) {
-                                post("@y ねじり検知", {in_reply_to_id: json['id']}, "direct");
-                                rt(json['id']);
-                                console.log("OK:match:"+acct);
-                            }
-
-                            //こおりたそと一緒にエタフォ
-                            if (text.match(/エターナルフォースブリザード/i)) {
-                                post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
-                                eti = 0;
-                                etfav(json['id']);
-                                console.log("OK:エタフォ:"+acct);
-                            }
-
-                            //メイン部分
-                            if (text.match(/(a!|あかり)/i)) {
-                                is_talking = false;
-                                rt(json['id']);
-
-                                if (text.match(/あかり \(Bot\)さん/i) && acct === "1") {
-                                    post("こおりちゃんこんにちは！");
-                                    is_talking = true;
-                                }
-
-                                if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
-                                    URL(json);
-                                    is_talking = true;
-                                }
-
-                                //埋める
-                                if (text.match(/埋め(たい|ろ|て)/i)) {
-                                    let name = "", postm = 0, postd = 0;
-
-                                    if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
-                                        name = "knzk";
-                                    } else {
-                                        post("@"+acct+" ごめんね、今は神埼おにいさん以外埋められないの...", {in_reply_to_id: json['id']}, "direct");
-                                    }
-                                    if (name === "knzk") {
-                                        postd = 1;
-                                        postm = 0;
+                                    while (config.bot_admin[admin_i]) {
+                                        if (acct === config.bot_admin[admin_i]) admin_pm = true;
+                                        admin_i++;
                                     }
 
-                                    if (postm) {
-                                        post(umeume(4, name));
-                                        console.log("OK:埋める:"+acct);
-                                    } else if (postd) {
-                                        post(umeume(20, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
-                                        console.log("OK:埋める(岩盤):"+acct);
-                                    }
-                                    is_talking = true;
-                                }
-
-                                //たこ焼き (ちょくだいさんに無能扱いされたので)
-                                if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～|う|く)だい|(欲|ほ)しい|お(願|ねが)い)/i)) {
-                                    setTimeout(function () {
-                                        post("@"+acct+" たこ焼きど～ぞ！\n\n" +
-                                            "[large=5x]:takoyaki:[/large]");
-                                    }, 5000);
-                                    console.log("OK:takoyaki:"+acct);
-                                    is_talking = true;
-                                }
-
-                                if (!is_talking) {
-                                    i = 0;
-                                    while (talk_data_base.talkdata_base[i]) {
-                                        if (text.match(new RegExp(talk_data_base.talkdata_base[i][0], 'i'))) {
-                                            post("@"+acct+" "+talk_data_base.talkdata_base[i][1], {in_reply_to_id: json['id']});
+                                    if (admin_pm) {
+                                        if (acct !== config.bot_admin[0]) {
+                                            post("@"+acct+" @"+config.bot_admin[0]+" 終了しました。", {}, "direct");
                                         }
-                                        i++;
+                                        post("そろおち～", {}, "public", true);
+                                        change_running(0);
+                                        console.log("OK:STOP:@"+acct);
                                     }
                                 }
-                            }
-                        } else {
-                            if (acct === config.bot_admin[0]) {
-                                if (text.match(/!start/i) || text.match(/あかり(ちゃん|たそ)(起動|おきて|起きて)/i)) {
-                                    change_running(1);
-                                    post("おはおは～");
+
+                                //話題感知
+                                if (text.match(/(ねじり|わさび|ねじわさ|KnzkApp|神崎丼アプリ)/i)) {
+                                    post("@y ねじり検知", {in_reply_to_id: json['id']}, "direct");
+                                    rt(json['id']);
+                                    console.log("OK:match:"+acct);
+                                }
+
+                                //こおりたそと一緒にエタフォ
+                                if (text.match(/エターナルフォースブリザード/i)) {
+                                    post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
+                                    eti = 0;
+                                    etfav(json['id']);
+                                    console.log("OK:エタフォ:"+acct);
+                                }
+
+                                //メイン部分
+                                if (text.match(/(a!|あかり)/i)) {
+                                    is_talking = false;
+                                    rt(json['id']);
+
+                                    if (text.match(/あかり \(Bot\)さん/i) && acct === "1") {
+                                        post("こおりちゃんこんにちは！");
+                                        is_talking = true;
+                                    }
+
+                                    if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
+                                        URL(json);
+                                        is_talking = true;
+                                    }
+
+                                    //埋める
+                                    if (text.match(/埋め(たい|ろ|て)/i)) {
+                                        let name = "", postm = 0, postd = 0;
+
+                                        if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
+                                            name = "knzk";
+                                        } else {
+                                            post("@"+acct+" ごめんね、今は神埼おにいさん以外埋められないの...", {in_reply_to_id: json['id']}, "direct");
+                                        }
+                                        if (name === "knzk") {
+                                            postd = 1;
+                                            postm = 0;
+                                        }
+
+                                        if (postm) {
+                                            post(umeume(4, name));
+                                            console.log("OK:埋める:"+acct);
+                                        } else if (postd) {
+                                            post(umeume(20, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
+                                            console.log("OK:埋める(岩盤):"+acct);
+                                        }
+                                        is_talking = true;
+                                    }
+
+                                    //たこ焼き (ちょくだいさんに無能扱いされたので)
+                                    if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～|う|く)だい|(欲|ほ)しい|お(願|ねが)い)/i)) {
+                                        setTimeout(function () {
+                                            post("@"+acct+" たこ焼きど～ぞ！\n\n" +
+                                                "[large=5x]:takoyaki:[/large]");
+                                        }, 5000);
+                                        console.log("OK:takoyaki:"+acct);
+                                        is_talking = true;
+                                    }
+
+                                    if (!is_talking) {
+                                        i = 0;
+                                        while (talk_data_base.talkdata_base[i]) {
+                                            if (text.match(new RegExp(talk_data_base.talkdata_base[i][0], 'i'))) {
+                                                post("@"+acct+" "+talk_data_base.talkdata_base[i][1], {in_reply_to_id: json['id']});
+                                            }
+                                            i++;
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (acct === config.bot_admin[0]) {
+                                    if (text.match(/!start/i) || text.match(/あかり(ちゃん|たそ)(起動|おきて|起きて)/i)) {
+                                        change_running(1);
+                                        post("おはおは～");
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            } catch (e) {
+                post("ごほっ、ごほっ...\n" +
+                    "ちょっと体調悪いから休む...\n\n" +
+                    "【エラーが発生したため停止します】");
+                change_running(0);
+
+                post("@y 【エラー検知】\n\n"+ e, {}, "direct");
             }
-        } catch (e) {
-            post("ごほっ、ごほっ...\n" +
-                "ちょっと体調悪いから休む...\n\n" +
-                "【エラーが発生したため停止します】");
-            change_running(0);
-
-            post("@y 【エラー検知】\n\n"+ e, {}, "direct");
-        }
+        });
     });
-});
 
-client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + config.token + "&stream=public:local");
+    client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + config.token + "&stream=public:local");
+}
 
 
 // ここからいろいろ
