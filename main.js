@@ -11,6 +11,9 @@ let mysql = require('mysql');
 let userdata = {};
 let favtype = 1;
 
+let lastup_day = new Date().getDate();
+let day_total_fav = {};
+
 if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.db_port ||
     !config.domain || !config.token ||
     !config.bot_id || !config.bot_admin) {
@@ -85,8 +88,17 @@ function AkariBot_main() {
                                     userdata["fav"][acct] -= 2;
                                     console.log("@"+acct+":minus_fav");
                                 } else if (text.match(/(好き|可愛い|かわいい|すき|偉い|えらい|なるほ|ありがと|有難う|やった)/i)) {
-                                    userdata["fav"][acct]++;
-                                    console.log("@"+acct+":plus_fav");
+                                    let d = new Date().getDate();
+                                    if (lastup_day !== d) {
+                                        lastup_day = d;
+                                        day_total_fav = {};
+                                    }
+                                    if (!day_total_fav[acct]) day_total_fav[acct] = 0;
+                                    if (day_total_fav[acct] <= 20) {
+                                        userdata["fav"][acct]++;
+                                        day_total_fav[acct]++;
+                                        console.log("@" + acct + ":plus_fav");
+                                    }
                                 }
 
                                 if (userdata["fav"][acct] < 20) favtype = 0;
