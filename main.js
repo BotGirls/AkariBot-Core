@@ -1,11 +1,17 @@
 let is_running = 1;
 let eti = 0, admin_i = 0, admin_pm = false, is_talking = false, i = 0;
 let config = require('./config');
-let talk_data_base = require('./data/talk/base');
+let talk_data_base = [];
+talk_data_base[0] = require('./data/talk/dislike');
+talk_data_base[1] = require('./data/talk/base');
+talk_data_base[2] = require('./data/talk/like');
 let fetch = require('node-fetch');
 let mysql = require('mysql');
 
-if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name ||
+let userdata = {};
+let favtype = 1;
+
+if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.db_port ||
     !config.domain || !config.token ||
     !config.bot_id || !config.bot_admin) {
     console.log("ERROR!:config情報が不足しています！");
@@ -14,16 +20,28 @@ if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name ||
 AkariBot_main();
 
 function AkariBot_main() {
-    /*
-let db = mysql.createConnection({
-    host     : config.db_host,
-    user     : config.db_user,
-    password : config.db_pass,
-    database : config.db_name
-});
-db.connect();
- */
-    let db = null;
+    let db = mysql.createConnection({
+        host: config.db_host,
+        port: config.db_port,
+        user: config.db_user,
+        password: config.db_pass,
+        database: config.db_name
+    });
+    db.connect();
+
+    db.query('SELECT * FROM `userdata`', function (error, results, fields) {
+        if (error) {
+            console.log("DBERROR: "+error);
+            db.end();
+            process.exit();
+        } else {
+            i = 0;
+            while (results[i]) {
+                userdata[results[i]["name"]] = JSON.parse(results[i]["data"]);
+                i++;
+            }
+        }
+    });
 
     let WebSocketClient = require('websocket').client;
     let client = new WebSocketClient();
@@ -37,14 +55,18 @@ db.connect();
         console.log('WebSocket Client Connected');
         connection.on('error', function(error) {
             console.log("Connection Error: " + error.toString());
-            if (db) db.end();
+            if (db) {
+                db.end();
+            }
         });
         connection.on('close', function() {
             console.log('サーバとの接続が切れました。60秒後にリトライします...');
             setTimeout( function() {
                 AkariBot_main();
             }, 60000);
-            if (db) db.end();
+            if (db) {
+                save(true, db);
+            }
             //鯖落ち
         });
         connection.on('message', function(message) {
@@ -57,6 +79,21 @@ db.connect();
                         let text = json['content'];
                         if (acct !== config.bot_id) {
                             if (is_running) {
+                                if (!userdata["fav"][acct]) userdata["fav"][acct] = 50;
+
+                                if (text.match(/(クソ|ガイジ|死|殺|21|うざ|ウザ)/i)) {
+                                    userdata["fav"][acct] -= 2;
+                                    console.log("@"+acct+":minus_fav");
+                                } else if (text.match(/(好き|可愛い|かわいい|すき|偉い|えらい|なるほ|ありがと|有難う|やった)/i)) {
+                                    userdata["fav"][acct]++;
+                                    console.log("@"+acct+":plus_fav");
+                                }
+
+                                if (userdata["fav"][acct] < 20) favtype = 0;
+                                else if (userdata["fav"][acct] < 100) favtype = 1;
+                                else if (userdata["fav"][acct] < 200) favtype = 2;
+                                //else if (userdata["fav"][acct] >= 200) favtype = 3;
+
                                 //終了
                                 if (text.match(/!stop/i)) {
                                     admin_i = 0;
@@ -79,13 +116,13 @@ db.connect();
 
                                 //話題感知
                                 if (text.match(/(ねじり|わさび|ねじわさ|KnzkApp|神崎丼アプリ)/i)) {
-                                    post("@y ねじり検知", {in_reply_to_id: json['id']}, "direct");
+                                    post("@"+config.bot_admin[0]+" ねじり検知", {in_reply_to_id: json['id']}, "direct");
                                     rt(json['id']);
                                     console.log("OK:match:"+acct);
                                 }
 
                                 //こおりたそと一緒にエタフォ
-                                if (text.match(/エターナルフォースブリザード/i)) {
+                                if (text.match(/エターナルフォースブリザード/i) && userdata["fav"][acct] > 20) {
                                     post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
                                     eti = 0;
                                     etfav(json['id']);
@@ -97,15 +134,27 @@ db.connect();
                                     is_talking = false;
                                     rt(json['id']);
 
-                                    if (text.match(/あかり \(Bot\)さん/i) && acct === "1") {
-                                        post("こおりちゃんこんにちは！");
-                                        is_talking = true;
-                                    }
-
                                     if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
                                         URL(json);
                                         is_talking = true;
                                     }
+
+                                    if (text.match(/(保存|セーブ)/i)) {
+                                        admin_i = 0;
+                                        admin_pm = false;
+
+                                        while (config.bot_admin[admin_i]) {
+                                            if (acct === config.bot_admin[admin_i]) admin_pm = true;
+                                            admin_i++;
+                                        }
+
+                                        if (admin_pm) {
+                                            save(false, db);
+                                            console.log("OK:SAVE:@"+acct);
+                                        }
+                                        is_talking = true;
+                                    }
+
 
                                     //埋める
                                     if (text.match(/埋め(たい|ろ|て)/i)) {
@@ -134,8 +183,12 @@ db.connect();
                                     //たこ焼き (ちょくだいさんに無能扱いされたので)
                                     if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～|う|く)だい|(欲|ほ)しい|お(願|ねが)い)/i)) {
                                         setTimeout(function () {
-                                            post("@"+acct+" たこ焼きど～ぞ！\n\n" +
-                                                "[large=5x]:takoyaki:[/large]");
+                                            if (userdata["fav"][acct] > 20) {
+                                                post("@"+acct+" たこ焼きど～ぞ！\n\n" +
+                                                    "[large=5x]:takoyaki:[/large]");
+                                            } else {
+                                                post("@"+acct+" えぇ...あなたにはちょっと...", {in_reply_to_id: json['id']});
+                                            }
                                         }, 5000);
                                         console.log("OK:takoyaki:"+acct);
                                         is_talking = true;
@@ -143,9 +196,10 @@ db.connect();
 
                                     if (!is_talking) {
                                         i = 0;
-                                        while (talk_data_base.talkdata_base[i]) {
-                                            if (text.match(new RegExp(talk_data_base.talkdata_base[i][0], 'i'))) {
-                                                post("@"+acct+" "+talk_data_base.talkdata_base[i][1], {in_reply_to_id: json['id']});
+
+                                        while (talk_data_base[favtype].talkdata_base[i]) {
+                                            if (text.match(new RegExp(talk_data_base[favtype].talkdata_base[i][0], 'i'))) {
+                                                post("@"+acct+" "+talk_data_base[favtype].talkdata_base[i][1], {in_reply_to_id: json['id']});
                                             }
                                             i++;
                                         }
@@ -163,12 +217,12 @@ db.connect();
                     }
                 }
             } catch (e) {
+                post("@"+config.bot_admin[0]+" 【エラー検知】\n\n"+ e, {}, "direct", true);
+                save(false, db);
                 post("ごほっ、ごほっ...\n" +
                     "ちょっと体調悪いから休む...\n\n" +
                     "【エラーが発生したため停止します】");
                 change_running(0);
-
-                post("@y 【エラー検知】\n\n"+ e, {}, "direct");
             }
         });
     });
@@ -178,6 +232,12 @@ db.connect();
 
 
 // ここからいろいろ
+function save(end, db) {
+    db.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
+        if (end) db.end();
+    });
+}
+
 function umeume(depth, name) {
     let res = "", is_bedrock = false, i = 0;
     if (depth > 4) is_bedrock = true;
@@ -220,11 +280,11 @@ function URL(json) {
                     if (text.match(/http/i)) {
                         post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
                     } else {
-                        post("@"+json['account']['acct']+" @y 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
+                        post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
                         console.warn("NG:url:"+json);
                     }
                 }).catch(function(error) {
-                    post("@"+json['account']['acct']+" @y APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
+                    post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
                     console.warn("NG:url:SERVER");
                 });
             } else {
