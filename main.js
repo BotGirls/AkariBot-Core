@@ -23,27 +23,29 @@ if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || 
 AkariBot_main();
 
 function AkariBot_main() {
-    let db = mysql.createConnection({
+    let db = mysql.createPool({
         host: config.db_host,
         port: config.db_port,
         user: config.db_user,
         password: config.db_pass,
         database: config.db_name
     });
-    db.connect();
 
-    db.query('SELECT * FROM `userdata`', function (error, results, fields) {
-        if (error) {
-            console.log("DBERROR: "+error);
-            db.end();
-            process.exit();
-        } else {
-            i = 0;
-            while (results[i]) {
-                userdata[results[i]["name"]] = JSON.parse(results[i]["data"]);
-                i++;
+    db.getConnection(function(err, connection) {
+        connection.query('SELECT * FROM `userdata`', function (error, results, fields) {
+            if (error) {
+                console.log("DBERROR: " + error);
+                db.end();
+                process.exit();
+            } else {
+                i = 0;
+                while (results[i]) {
+                    userdata[results[i]["name"]] = JSON.parse(results[i]["data"]);
+                    i++;
+                }
             }
-        }
+            connection.release();
+        });
     });
 
     let WebSocketClient = require('websocket').client;
@@ -262,8 +264,11 @@ function AkariBot_main() {
 
 // ここからいろいろ
 function save(end, db) {
-    db.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
-        if (end) db.end();
+    db.getConnection(function(err, connection) {
+        connection.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
+            connection.release();
+            if (end) db.end();
+        });
     });
 }
 
