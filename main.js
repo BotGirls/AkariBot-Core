@@ -84,7 +84,7 @@ function AkariBot_main() {
                             if (is_running) {
                                 if (!userdata["fav"][acct]) userdata["fav"][acct] = 50;
 
-                                if (text.match(/(クソ|ガイジ|死|殺|21|うざ|ウザ)/i)) {
+                                if (text.match(/(クソ|ガイジ|死|殺|21|うざ|ウザ|デブ)/i)) {
                                     userdata["fav"][acct] -= 2;
                                     console.log("@"+acct+":minus_fav");
                                 } else if (text.match(/(好き|可愛い|かわいい|すき|偉い|えらい|なるほ|ありがと|有難う|やった)/i)) {
@@ -123,6 +123,7 @@ function AkariBot_main() {
                                         post("そろおち～", {}, "public", true);
                                         change_running(0);
                                         console.log("OK:STOP:@"+acct);
+                                        save(false, db);
                                     }
                                 }
 
@@ -152,6 +153,22 @@ function AkariBot_main() {
                                     }
 
                                     if (text.match(/(保存|セーブ)/i)) {
+                                        admin_i = 0;
+                                        admin_pm = false;
+
+                                        while (config.bot_admin[admin_i]) {
+                                            if (acct === config.bot_admin[admin_i]) admin_pm = true;
+                                            admin_i++;
+                                        }
+
+                                        if (admin_pm) {
+                                            save(false, db);
+                                            console.log("OK:SAVE:@"+acct);
+                                        }
+                                        is_talking = true;
+                                    }
+                                    
+                                    if (text.match(/(リロード|再起動)/i)) {
                                         admin_i = 0;
                                         admin_pm = false;
 
@@ -276,34 +293,34 @@ function URL(json) {
             if(response.ok) {
                 return response.json();
             } else {
-                throw new Error();
+                console.warn("NG:url_card:SERVER");
+                return null;
             }
         }).then(function(json_url) {
-            if (json_url["url"]) {
-                fetch("https://" + config.urlshort_api + "?akari_id=Akari_"+json['account']['acct']+"&url="+encodeURIComponent(json_url["url"]), {
-                    method: 'GET'
-                }).then(function(response) {
-                    if(response.ok) {
-                        return response.text();
-                    } else {
-                        throw new Error();
-                    }
-                }).then(function(text) {
-                    if (text.match(/http/i)) {
-                        post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
-                    } else {
-                        post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
-                        console.warn("NG:url:"+json);
-                    }
-                }).catch(function(error) {
-                    post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
-                    console.warn("NG:url:SERVER");
-                });
-            } else {
-                post("@"+json['account']['acct']+" ...？\nURLが取得できなかった...", {in_reply_to_id: json['id']});
+            if (json_url) {
+                if (json_url["url"]) {
+                    fetch("https://" + config.urlshort_api + "?akari_id=Akari_"+json['account']['acct']+"&url="+encodeURIComponent(json_url["url"]), {
+                        method: 'GET'
+                    }).then(function(response) {
+                        if(response.ok) {
+                            return response.text();
+                        } else {
+                            post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
+                            console.warn("NG:url:SERVER");
+                            return null;
+                        }
+                    }).then(function(text) {
+                        if (text.match(/http/i)) {
+                            post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
+                        } else {
+                            post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
+                            console.warn("NG:url:"+json);
+                        }
+                    });
+                } else {
+                    post("@"+json['account']['acct']+" ...？\nURLが取得できなかった...", {in_reply_to_id: json['id']});
+                }
             }
-        }).catch(function(error) {
-            console.warn("NG:url_card:SERVER");
         });
     }, 20000);
 }
@@ -316,38 +333,40 @@ function etfav(id) {
         if(response.ok) {
             return response.json();
         } else {
-            throw new Error();
+            console.warn("NG:fav:SERVER");
+            return null;
         }
     }).then(function(json) {
-        if (json["id"]) {
-            console.log("OK:fav");
-            fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/unfavourite", {
-                headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
-                method: 'POST'
-            }).then(function(response) {
-                if(response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error();
-                }
-            }).then(function(json) {
-                if (json["id"]) {
-                    console.log("OK:fav");
-                    if (eti < 20) {
-                        etfav(id);
-                        eti++;
+        if (json) {
+            if (json["id"]) {
+                console.log("OK:fav");
+                fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/unfavourite", {
+                    headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+                    method: 'POST'
+                }).then(function(response) {
+                    if(response.ok) {
+                        return response.json();
+                    } else {
+                        console.warn("NG:fav:SERVER");
+                        return null;
                     }
-                } else {
-                    console.warn("NG:fav:"+json);
-                }
-            }).catch(function(error) {
-                console.warn("NG:fav:SERVER");
-            });
-        } else {
-            console.warn("NG:fav:"+json);
+                }).then(function(json) {
+                    if (json) {
+                        if (json["id"]) {
+                            console.log("OK:fav");
+                            if (eti < 20) {
+                                etfav(id);
+                                eti++;
+                            }
+                        } else {
+                            console.warn("NG:fav:"+json);
+                        }
+                    }
+                });
+            } else {
+                console.warn("NG:fav:"+json);
+            }
         }
-    }).catch(function(error) {
-        console.warn("NG:fav:SERVER");
     });
 }
 
@@ -360,16 +379,17 @@ function rt(id) {
         if(response.ok) {
             return response.json();
         } else {
-            throw new Error();
+            console.warn("NG:RT:SERVER");
+            return null;
         }
     }).then(function(json) {
-        if (json["id"]) {
-            console.log("OK:RT");
-        } else {
-            console.warn("NG:RT:"+json);
+        if (json) {
+            if (json["id"]) {
+                console.log("OK:RT");
+            } else {
+                console.warn("NG:RT:"+json);
+            }
         }
-    }).catch(function(error) {
-        console.warn("NG:RT:SERVER");
     });
 }
 
@@ -394,16 +414,17 @@ function post(value, option = {}, visibility = "public", force) {
             if(response.ok) {
                 return response.json();
             } else {
-                throw new Error();
+                console.warn("NG:POST:SERVER");
+                return null;
             }
         }).then(function(json) {
-            if (json["id"]) {
-                console.log("OK:POST");
-            } else {
-                console.warn("NG:POST:"+json);
+            if (json) {
+                if (json["id"]) {
+                    console.log("OK:POST");
+                } else {
+                    console.warn("NG:POST:"+json);
+                }
             }
-        }).catch(function(error) {
-            console.warn("NG:POST:SERVER");
         });
     }
 }
