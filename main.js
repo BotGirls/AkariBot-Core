@@ -66,12 +66,12 @@ function AkariBot_main() {
         });
         connection.on('close', function() {
             console.log('サーバとの接続が切れました。60秒後にリトライします...');
-            setTimeout( function() {
-                AkariBot_main();
-            }, 60000);
             if (db) {
                 save(true, db);
             }
+            setTimeout( function() {
+                AkariBot_main();
+            }, 60000);
             //鯖落ち
         });
         connection.on('message', function(message) {
@@ -165,7 +165,6 @@ function AkariBot_main() {
 
                                         if (admin_pm) {
                                             save(false, db);
-                                            console.log("OK:SAVE:@"+acct);
                                         }
                                         is_talking = true;
                                     }
@@ -181,7 +180,6 @@ function AkariBot_main() {
 
                                         if (admin_pm) {
                                             save(false, db);
-                                            console.log("OK:SAVE:@"+acct);
                                         }
                                         is_talking = true;
                                     }
@@ -266,6 +264,7 @@ function AkariBot_main() {
 function save(end, db) {
     db.getConnection(function(err, connection) {
         connection.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
+            console.log("OK:SAVE");
             connection.release();
             if (end) db.end();
         });
