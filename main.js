@@ -129,8 +129,15 @@ function AkariBot_main() {
                                     }
                                 }
 
+                                if (text.match(/test/i)) {
+                                    post_upimg("@"+acct+" ねじりわさび「", {media: 1}, "public", false, db);
+                                }
+
                                 //話題感知
                                 if (text.match(/(ねじり|わさび|ねじわさ|KnzkApp|神崎丼アプリ)/i)) {
+                                    if (text.match(/ママ/i)) {
+                                        post_upimg("@"+acct+" ねじりわさび「", {media: 1}, "public", false, db);
+                                    }
                                     post("@"+config.bot_admin[0]+" ねじり検知", {in_reply_to_id: json['id']}, "direct");
                                     rt(json['id']);
                                     console.log("OK:match:"+acct);
@@ -397,6 +404,47 @@ function rt(id) {
     });
 }
 
+function post_upimg(value, option = {}, visibility = "public", force, db) {
+    if (is_running || force) {
+        db.getConnection(function(err, connection) {
+            connection.query('SELECT * FROM `image_blob` WHERE `id` = ?', [option.media], function (error, results, fields) {
+                if (error) {
+                    console.log("DBERROR: " + error);
+                } else {
+                    let blob = new Buffer(results[0]["image"], 'base64').toString('binary');
+
+                    fetch("https://" + config.domain + "/api/v1/media", {
+                        headers: {'Authorization': 'Bearer '+config.token},
+                        method: 'POST',
+                        body: {
+                            file: blob,
+                            description: results[0]["description"]
+                        }
+                    }).then(function(response) {
+                        if(response.ok) {
+                            return response.json();
+                        } else {
+                            console.warn("NG:POST_IMG:SERVER", response);
+                            return null;
+                        }
+                    }).then(function(json) {
+                        if (json) {
+                            if (json["id"] && json["type"] !== "unknown") {
+                                console.log("OK:POST_IMG", json);
+                                let opt = option["media_ids"] = [json["id"]];
+                                post(value, opt, visibility, force);
+                            } else {
+                                console.warn("NG:POST_IMG:",json);
+                            }
+                        }
+                    });
+                }
+                connection.release();
+            });
+        });
+    }
+}
+
 function post(value, option = {}, visibility = "public", force) {
     var optiondata = {
         status: value,
@@ -408,6 +456,9 @@ function post(value, option = {}, visibility = "public", force) {
     }
     if (option.in_reply_to_id) {
         optiondata.in_reply_to_id = option.in_reply_to_id;
+    }
+    if (option.media_ids) {
+        optiondata.media_ids = option.media_ids;
     }
     if (is_running || force) {
         fetch("https://" + config.domain + "/api/v1/statuses", {
