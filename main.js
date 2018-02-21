@@ -11,8 +11,11 @@ let mysql = require('mysql');
 let userdata = {};
 let favtype = 1;
 
-let lastup_day = new Date().getDate();
+let lastup = new Date();
+let lastup_day = lastup.getDate();
 let day_total_fav = {};
+
+let koresuki = {};
 
 if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.db_port ||
     !config.domain || !config.token ||
@@ -44,7 +47,26 @@ function AkariBot_main() {
                     i++;
                 }
             }
-            connection.release();
+            connection.query('SELECT * FROM `koresuki`', function (error, results, fields) {
+                if (error) {
+                    console.log("DBERROR: " + error);
+                    db.end();
+                    process.exit();
+                } else {
+                    let ndate = lastup.getFullYear() + "-" + (lastup.getMonth()+1) + "-" + lastup.getDate();
+                    if (results[0]["date"] == ndate) {
+                        koresuki["all"] = results[0]["allcount"];
+                        koresuki["user"] = JSON.parse(results[0]["usercount"]);
+                        connection.release();
+                    } else {
+                        connection.query('INSERT INTO `koresuki` (`date`, `allcount`, `usercount`) VALUES (?, \'0\', \'{}\')', [ndate], function (err, result) {
+                            connection.release();
+                            koresuki["all"] = 0;
+                            koresuki["user"] = {};
+                        });
+                    }
+                }
+            });
         });
     });
 
@@ -93,7 +115,9 @@ function AkariBot_main() {
                                     let d = new Date().getDate();
                                     if (lastup_day !== d) {
                                         lastup_day = d;
+                                        lastup = new Date();
                                         day_total_fav = {};
+                                        save(false, db, true);
                                     }
                                     if (!day_total_fav[acct]) day_total_fav[acct] = 0;
                                     if (day_total_fav[acct] <= 20) {
@@ -101,6 +125,14 @@ function AkariBot_main() {
                                         day_total_fav[acct]++;
                                         console.log("@" + acct + ":plus_fav");
                                     }
+                                }
+
+                                if (text.match(/これ([す好])き/)) {
+                                    if (!koresuki["user"][acct]) koresuki["user"][acct] = 0;
+                                    if (!koresuki["all"]) koresuki["all"] = 0;
+                                    koresuki["all"]++;
+                                    koresuki["user"][acct]++;
+                                    console.log("koresuki:"+acct);
                                 }
 
                                 if (userdata["fav"][acct] < 20) favtype = 0;
@@ -261,12 +293,22 @@ function AkariBot_main() {
 
 
 // ここからいろいろ
-function save(end, db) {
+function save(end, db, reset) {
     db.getConnection(function(err, connection) {
         connection.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
             console.log("OK:SAVE");
-            connection.release();
-            if (end) db.end();
+
+            let olddate = reset ? new Date(lastup.getFullYear(), lastup.getMonth(), lastup.getDate() - 1) : new Date();
+            let olddate_disp = olddate.getFullYear() + "-" + (olddate.getMonth()+1) + "-" + olddate.getDate();
+            connection.query('UPDATE `koresuki` SET `allcount` = ?, `usercount` = ? WHERE `koresuki`.`date` = ?', [koresuki["all"], JSON.stringify(koresuki["user"]), olddate_disp], function (err, result) {
+                console.log("OK:SAVE:2");
+                if (reset) {
+                    koresuki["all"] = 0;
+                    koresuki["user"] = {};
+                }
+                connection.release();
+                if (end) db.end();
+            });
         });
     });
 }
