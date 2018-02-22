@@ -226,18 +226,17 @@ function AkariBot_main() {
                                         } else {
                                             post("@"+acct+" ごめんね、今は神埼おにいさん以外埋められないの...", {in_reply_to_id: json['id']}, "direct");
                                         }
-                                        if (name === "knzk") {
-                                            postd = 1;
-                                            postm = 0;
+
+                                        let rand = Math.floor( Math.random() * (30) ) + 1;
+                                        let talktext;
+                                        if (rand < 5) {
+                                            talktext = "" + rand + "メートルぐらいしか埋められなかった...";
+                                        } else {
+                                            talktext = "" + (rand*5) + "メートルぐらい埋められたよ！";
                                         }
 
-                                        if (postm) {
-                                            post(umeume(4, name));
-                                            console.log("OK:埋める:"+acct);
-                                        } else if (postd) {
-                                            post(umeume(20, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
-                                            console.log("OK:埋める(岩盤):"+acct);
-                                        }
+                                        post("@"+acct+" と一緒に "+"@"+name+" を埋めたら"+ talktext +"\n\n\n"+umeume(rand, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
+                                        console.log("OK:埋める(岩盤):"+acct);
                                         is_talking = true;
                                     }
 
