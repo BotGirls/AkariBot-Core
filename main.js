@@ -228,14 +228,22 @@ function AkariBot_main() {
                                         }
 
                                         let rand = Math.floor( Math.random() * (30) ) + 1;
-                                        let talktext;
+                                        let talktext, dead_mode = "";
                                         if (rand < 5) {
                                             talktext = "" + rand + "メートルぐらいしか埋められなかった...";
                                         } else {
                                             talktext = "" + (rand*5) + "メートルぐらい埋められたよ！";
+                                            let rand_dead = Math.floor( Math.random() * 21 );
+                                            if (rand_dead > 15) {
+                                                dead_mode = "lava";
+                                                talktext += "(マグマに落ちちゃった...)";
+                                            } else if (rand_dead > 10) {
+                                                dead_mode = "water";
+                                                talktext += "(溺れちゃった...)";
+                                            }
                                         }
 
-                                        post("@"+acct+" と一緒に "+name+" を埋めたら"+ talktext +"\n\n\n"+umeume(rand, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
+                                        post("@"+acct+" と一緒に "+name+" を埋めたら"+ talktext +"\n\n\n"+umeume(rand, name, dead_mode), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
                                         console.log("OK:埋める(岩盤):"+acct);
                                         is_talking = true;
                                     }
@@ -312,9 +320,11 @@ function save(end, db, reset) {
     });
 }
 
-function umeume(depth, name) {
-    let res = "", is_bedrock = false, i = 0;
-    if (depth > 4) is_bedrock = true;
+function umeume(depth, name, dead_mode) {
+    let res = "", is_bedrock = false, i = 0, block = "";
+
+    if (depth > 28) is_bedrock = true;
+
     depth -= 3;
     res = ":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n";
 
@@ -322,11 +332,17 @@ function umeume(depth, name) {
         res += ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n";
         i++;
     }
+    if (dead_mode === "lava") block = "minecraft_lava";
+    else if (dead_mode === "water") block = "minecraft_water";
 
-    res += ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n";
-    res += is_bedrock ? ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:" : ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:";
+    if (dead_mode) {
+        res += ":"+block+":​:"+block+":​:"+name+":​:"+block+":​:"+block+":\n";
+        res += ":"+block+":​:"+block+":​:"+block+":​:"+block+":​:"+block+":";
+    } else {
+        res += ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n";
+        res += is_bedrock ? ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:" : ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:";
+    }
     return res;
-
 }
 
 function URL(json) {
