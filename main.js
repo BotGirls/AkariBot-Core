@@ -235,7 +235,7 @@ function AkariBot_main() {
                                             talktext = "" + (rand*5) + "メートルぐらい埋められたよ！";
                                         }
 
-                                        post("@"+acct+" と一緒に "+"@"+name+" を埋めたら"+ talktext +"\n\n\n"+umeume(rand, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
+                                        post("@"+acct+" と一緒に "+name+" を埋めたら"+ talktext +"\n\n\n"+umeume(rand, name), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
                                         console.log("OK:埋める(岩盤):"+acct);
                                         is_talking = true;
                                     }
