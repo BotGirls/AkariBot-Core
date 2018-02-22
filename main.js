@@ -47,7 +47,7 @@ function AkariBot_main() {
                     i++;
                 }
             }
-            connection.query('SELECT * FROM `koresuki`', function (error, results, fields) {
+            connection.query('SELECT * FROM `koresuki` ORDER BY `koresuki`.`date` DESC', function (error, results, fields) {
                 if (error) {
                     console.log("DBERROR: " + error);
                     db.end();
