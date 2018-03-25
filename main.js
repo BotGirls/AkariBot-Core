@@ -168,8 +168,8 @@ function AkariBot_main() {
                                     console.log("OK:match:"+acct);
                                 }
 
-                                if (text.match(/(ねじり|わさび|ねじわさ|ゴミ|クソ|早く|速く|欲しい)/i) && acct === "Knzk") {
-                                    post("@Knzk レポートまだー？");
+                                if (text.match(/(ねじり|わさび|ねじわさ)/i) && text.match(/(ゴミ|クソ|早く|速く|欲しい)/i) && acct === "Knzk") {
+                                    post("@Knzk レポートまだー？", {in_reply_to_id: json['id']});
                                     rt(json['id']);
                                     console.log("OK:report:"+acct);
                                     is_talking = true;
