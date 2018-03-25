@@ -168,6 +168,13 @@ function AkariBot_main() {
                                     console.log("OK:match:"+acct);
                                 }
 
+                                if (text.match(/(ねじり|わさび|ねじわさ|ゴミ|クソ|早く|速く|欲しい)/i) && acct === "Knzk") {
+                                    post("@Knzk レポートまだー？");
+                                    rt(json['id']);
+                                    console.log("OK:report:"+acct);
+                                    is_talking = true;
+                                }
+
                                 //こおりたそと一緒にエタフォ
                                 if (text.match(/エターナルフォースブリザード/i) && userdata["fav"][acct] > 20) {
                                     post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
