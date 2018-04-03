@@ -25,6 +25,16 @@ if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || 
 }
 AkariBot_main();
 
+function reConnect(db) {
+  console.log('サーバとの接続が切れました。60秒後にリトライします...');
+  if (db) {
+    save(true, db);
+  }
+  setTimeout( function() {
+    AkariBot_main();
+  }, 60000);
+}
+
 function AkariBot_main() {
     let db = mysql.createPool({
         host: config.db_host,
@@ -75,25 +85,17 @@ function AkariBot_main() {
 
     client.on('connectFailed', function(error) {
         console.log('Connect Error: ' + error.toString());
-        if (db) db.end();
+        reConnect(db);
     });
 
     client.on('connect', function(connection) {
         console.log('WebSocket Client Connected');
         connection.on('error', function(error) {
             console.log("Connection Error: " + error.toString());
-            if (db) {
-                db.end();
-            }
+            reConnect(db);
         });
         connection.on('close', function() {
-            console.log('サーバとの接続が切れました。60秒後にリトライします...');
-            if (db) {
-                save(true, db);
-            }
-            setTimeout( function() {
-                AkariBot_main();
-            }, 60000);
+            reConnect(db);
             //鯖落ち
         });
         connection.on('message', function(message) {
@@ -166,13 +168,6 @@ function AkariBot_main() {
                                     post("@"+config.bot_admin[0]+" ねじり検知", {in_reply_to_id: json['id']}, "direct");
                                     rt(json['id']);
                                     console.log("OK:match:"+acct);
-                                }
-
-                                if (text.match(/(ねじり|わさび|ねじわさ)/i) && text.match(/(ゴミ|クソ|早く|速く|欲しい)/i) && acct === "Knzk") {
-                                    post("@Knzk レポートまだー？", {in_reply_to_id: json['id']});
-                                    rt(json['id']);
-                                    console.log("OK:report:"+acct);
-                                    is_talking = true;
                                 }
 
                                 //こおりたそと一緒にエタフォ
