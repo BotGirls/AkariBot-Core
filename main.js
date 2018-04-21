@@ -163,13 +163,6 @@ function AkariBot_main() {
                                     }
                                 }
 
-                                //話題感知
-                                if (text.match(/(ねじり|わさび|ねじわさ|KnzkApp|神崎丼アプリ)/i)) {
-                                    post("@"+config.bot_admin[0]+" ねじり検知", {in_reply_to_id: json['id']}, "direct");
-                                    rt(json['id']);
-                                    console.log("OK:match:"+acct);
-                                }
-
                                 //こおりたそと一緒にエタフォ
                                 if (text.match(/エターナルフォースブリザード/i) && userdata["fav"][acct] > 20) {
                                     post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
