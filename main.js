@@ -26,13 +26,13 @@ if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || 
 AkariBot_main();
 
 function reConnect(db) {
-  console.log('サーバとの接続が切れました。60秒後にリトライします...');
-  if (db) {
-    save(true, db);
-  }
-  setTimeout( function() {
-    AkariBot_main();
-  }, 60000);
+    console.log('サーバとの接続が切れました。60秒後にリトライします...');
+    if (db) {
+        save(true, db);
+    }
+    setTimeout(function () {
+        AkariBot_main();
+    }, 60000);
 }
 
 function AkariBot_main() {
@@ -44,7 +44,7 @@ function AkariBot_main() {
         database: config.db_name
     });
 
-    db.getConnection(function(err, connection) {
+    db.getConnection(function (err, connection) {
         connection.query('SELECT * FROM `userdata`', function (error, results, fields) {
             if (error) {
                 console.log("DBERROR: " + error);
@@ -63,7 +63,7 @@ function AkariBot_main() {
                     db.end();
                     process.exit();
                 } else {
-                    let ndate = lastup.getFullYear() + "-" + (lastup.getMonth()+1) + "-" + lastup.getDate();
+                    let ndate = lastup.getFullYear() + "-" + (lastup.getMonth() + 1) + "-" + lastup.getDate();
                     if (results[0]["date"] == ndate) {
                         koresuki["all"] = results[0]["allcount"];
                         koresuki["user"] = JSON.parse(results[0]["usercount"]);
@@ -83,22 +83,22 @@ function AkariBot_main() {
     let WebSocketClient = require('websocket').client;
     let client = new WebSocketClient();
 
-    client.on('connectFailed', function(error) {
+    client.on('connectFailed', function (error) {
         console.log('Connect Error: ' + error.toString());
         reConnect(db);
     });
 
-    client.on('connect', function(connection) {
+    client.on('connect', function (connection) {
         console.log('WebSocket Client Connected');
-        connection.on('error', function(error) {
+        connection.on('error', function (error) {
             console.log("Connection Error: " + error.toString());
             reConnect(db);
         });
-        connection.on('close', function() {
+        connection.on('close', function () {
             reConnect(db);
             //鯖落ち
         });
-        connection.on('message', function(message) {
+        connection.on('message', function (message) {
             //console.log(message);
             try {
                 if (message.type === 'utf8') {
@@ -112,7 +112,7 @@ function AkariBot_main() {
 
                                 if (text.match(/(クソ|ガイジ|死|殺|21|うざ|ウザ|デブ)/i)) {
                                     userdata["fav"][acct] -= 2;
-                                    console.log("@"+acct+":minus_fav");
+                                    console.log("@" + acct + ":minus_fav");
                                 } else if (text.match(/(好き|可愛い|かわいい|すき|偉い|えらい|なるほ|ありがと|有難う|やった)/i)) {
                                     let d = new Date().getDate();
                                     if (lastup_day !== d) {
@@ -134,7 +134,7 @@ function AkariBot_main() {
                                     if (!koresuki["all"]) koresuki["all"] = 0;
                                     koresuki["all"]++;
                                     koresuki["user"][acct]++;
-                                    console.log("koresuki:"+acct);
+                                    console.log("koresuki:" + acct);
                                 }
 
                                 if (userdata["fav"][acct] < 20) favtype = 0;
@@ -154,21 +154,21 @@ function AkariBot_main() {
 
                                     if (admin_pm) {
                                         if (acct !== config.bot_admin[0]) {
-                                            post("@"+acct+" @"+config.bot_admin[0]+" 終了しました。", {}, "direct");
+                                            post("@" + acct + " @" + config.bot_admin[0] + " 終了しました。", {}, "direct");
                                         }
                                         post("そろおち～", {}, "public", true);
                                         change_running(0);
-                                        console.log("OK:STOP:@"+acct);
+                                        console.log("OK:STOP:@" + acct);
                                         save(false, db);
                                     }
                                 }
 
                                 //こおりたそと一緒にエタフォ
                                 if (text.match(/エターナルフォースブリザード/i) && userdata["fav"][acct] > 20) {
-                                    post("@"+acct+" 私も.....！！！", {in_reply_to_id: json['id']});
+                                    post("@" + acct + " 私も.....！！！", { in_reply_to_id: json['id'] });
                                     eti = 0;
                                     etfav(json['id']);
-                                    console.log("OK:エタフォ:"+acct);
+                                    console.log("OK:エタフォ:" + acct);
                                 }
 
                                 //メイン部分
@@ -195,7 +195,7 @@ function AkariBot_main() {
                                         }
                                         is_talking = true;
                                     }
-                                    
+
                                     if (text.match(/(リロード|再起動)/i)) {
                                         admin_i = 0;
                                         admin_pm = false;
@@ -238,16 +238,16 @@ function AkariBot_main() {
                                         if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
                                             name = "knzk";
                                         } else {
-                                            post("@"+acct+" ごめんね、今は神埼おにいさん以外埋められないの...", {in_reply_to_id: json['id']}, "direct");
+                                            post("@" + acct + " ごめんね、今は神埼おにいさん以外埋められないの...", { in_reply_to_id: json['id'] }, "direct");
                                         }
 
-                                        let rand = Math.floor( Math.random() * (30) ) + 1;
+                                        let rand = Math.floor(Math.random() * (30)) + 1;
                                         let talktext, dead_mode = "";
                                         if (rand < 5) {
                                             talktext = "" + rand + "メートルぐらいしか埋められなかった...";
                                         } else {
-                                            talktext = "" + (rand*5) + "メートルぐらい埋められたよ！";
-                                            let rand_dead = Math.floor( Math.random() * 21 );
+                                            talktext = "" + (rand * 5) + "メートルぐらい埋められたよ！";
+                                            let rand_dead = Math.floor(Math.random() * 21);
                                             if (rand_dead > 15) {
                                                 dead_mode = "lava";
                                                 talktext += "(マグマに落ちちゃった...)";
@@ -257,8 +257,8 @@ function AkariBot_main() {
                                             }
                                         }
 
-                                        post("@"+acct+" と一緒に "+name+" を埋めたら"+ talktext +"\n\n\n"+umeume(rand, name, dead_mode), {cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..."});
-                                        console.log("OK:埋める(岩盤):"+acct);
+                                        post("@" + acct + " と一緒に " + name + " を埋めたら" + talktext + "\n\n\n" + umeume(rand, name, dead_mode), { cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..." });
+                                        console.log("OK:埋める(岩盤):" + acct);
                                         is_talking = true;
                                     }
 
@@ -266,13 +266,13 @@ function AkariBot_main() {
                                     if (text.match(/たこ(焼き|やき)/i) && text.match(/((焼|や)いて|(作|つく)って|(食|た)べたい|ちょ(ー|～|う|く)だい|(欲|ほ)しい|お(願|ねが)い)/i)) {
                                         setTimeout(function () {
                                             if (userdata["fav"][acct] > 20) {
-                                                post("@"+acct+" たこ焼きど～ぞ！\n\n" +
+                                                post("@" + acct + " たこ焼きど～ぞ！\n\n" +
                                                     "[large=5x]:takoyaki:[/large]");
                                             } else {
-                                                post("@"+acct+" えぇ...あなたにはちょっと...", {in_reply_to_id: json['id']});
+                                                post("@" + acct + " えぇ...あなたにはちょっと...", { in_reply_to_id: json['id'] });
                                             }
                                         }, 5000);
-                                        console.log("OK:takoyaki:"+acct);
+                                        console.log("OK:takoyaki:" + acct);
                                         is_talking = true;
                                     }
 
@@ -281,7 +281,7 @@ function AkariBot_main() {
 
                                         while (talk_data_base[favtype].talkdata_base[i]) {
                                             if (text.match(new RegExp(talk_data_base[favtype].talkdata_base[i][0], 'i'))) {
-                                                post("@"+acct+" "+talk_data_base[favtype].talkdata_base[i][1], {in_reply_to_id: json['id']});
+                                                post("@" + acct + " " + talk_data_base[favtype].talkdata_base[i][1], { in_reply_to_id: json['id'] });
                                             }
                                             i++;
                                         }
@@ -299,7 +299,7 @@ function AkariBot_main() {
                     }
                 }
             } catch (e) {
-                post("@"+config.bot_admin[0]+" 【エラー検知】\n\n"+ e, {}, "direct", true);
+                post("@" + config.bot_admin[0] + " 【エラー検知】\n\n" + e, {}, "direct", true);
                 save(false, db);
                 post("ごほっ、ごほっ...\n" +
                     "ちょっと体調悪いから休む...\n\n" +
@@ -315,12 +315,12 @@ function AkariBot_main() {
 
 // ここからいろいろ
 function save(end, db, reset) {
-    db.getConnection(function(err, connection) {
+    db.getConnection(function (err, connection) {
         connection.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
             console.log("OK:SAVE");
 
             let olddate = reset ? new Date(lastup.getFullYear(), lastup.getMonth(), lastup.getDate() - 1) : new Date();
-            let olddate_disp = olddate.getFullYear() + "-" + (olddate.getMonth()+1) + "-" + olddate.getDate();
+            let olddate_disp = olddate.getFullYear() + "-" + (olddate.getMonth() + 1) + "-" + olddate.getDate();
             connection.query('UPDATE `koresuki` SET `allcount` = ?, `usercount` = ? WHERE `koresuki`.`date` = ?', [koresuki["all"], JSON.stringify(koresuki["user"]), olddate_disp], function (err, result) {
                 console.log("OK:SAVE:2");
                 if (reset) {
@@ -350,50 +350,50 @@ function umeume(depth, name, dead_mode) {
     else if (dead_mode === "water") block = "minecraft_water";
 
     if (dead_mode) {
-        res += ":"+block+":​:"+block+":​:"+name+":​:"+block+":​:"+block+":\n";
-        res += ":"+block+":​:"+block+":​:"+block+":​:"+block+":​:"+block+":";
+        res += ":" + block + ":​:" + block + ":​:" + name + ":​:" + block + ":​:" + block + ":\n";
+        res += ":" + block + ":​:" + block + ":​:" + block + ":​:" + block + ":​:" + block + ":";
     } else {
-        res += ":minecraft_stone:​:minecraft_stone:​:"+name+":​:minecraft_stone:​:minecraft_stone:\n";
+        res += ":minecraft_stone:​:minecraft_stone:​:" + name + ":​:minecraft_stone:​:minecraft_stone:\n";
         res += is_bedrock ? ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:" : ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:";
     }
     return res;
 }
 
 function URL(json) {
-    post("@"+json['account']['acct']+" 送信してるから数十秒まっててねー！", {in_reply_to_id: json['id']});
-    setTimeout( function() {
-        fetch("https://" + config.domain + "/api/v1/statuses/"+json['id']+"/card", {
+    post("@" + json['account']['acct'] + " 送信してるから数十秒まっててねー！", { in_reply_to_id: json['id'] });
+    setTimeout(function () {
+        fetch("https://" + config.domain + "/api/v1/statuses/" + json['id'] + "/card", {
             method: 'GET'
-        }).then(function(response) {
-            if(response.ok) {
+        }).then(function (response) {
+            if (response.ok) {
                 return response.json();
             } else {
                 console.warn("NG:url_card:SERVER");
                 return null;
             }
-        }).then(function(json_url) {
+        }).then(function (json_url) {
             if (json_url) {
                 if (json_url["url"]) {
-                    fetch("https://" + config.urlshort_api + "?akari_id=Akari_"+json['account']['acct']+"&url="+encodeURIComponent(json_url["url"]), {
+                    fetch("https://" + config.urlshort_api + "?akari_id=Akari_" + json['account']['acct'] + "&url=" + encodeURIComponent(json_url["url"]), {
                         method: 'GET'
-                    }).then(function(response) {
-                        if(response.ok) {
+                    }).then(function (response) {
+                        if (response.ok) {
                             return response.text();
                         } else {
-                            post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" APIにアクセスできなかった...", {in_reply_to_id: json['id']}, "direct");
+                            post("@" + json['account']['acct'] + " @" + config.bot_admin[0] + " APIにアクセスできなかった...", { in_reply_to_id: json['id'] }, "direct");
                             console.warn("NG:url:SERVER");
                             return null;
                         }
-                    }).then(function(text) {
+                    }).then(function (text) {
                         if (text.match(/http/i)) {
-                            post("@"+json['account']['acct']+" はいど～ぞ！\n"+text, {in_reply_to_id: json['id']});
+                            post("@" + json['account']['acct'] + " はいど～ぞ！\n" + text, { in_reply_to_id: json['id'] });
                         } else {
-                            post("@"+json['account']['acct']+" @"+config.bot_admin[0]+" 何か失敗したみたい... エラー:"+text, {in_reply_to_id: json['id']}, "direct");
-                            console.warn("NG:url:"+json);
+                            post("@" + json['account']['acct'] + " @" + config.bot_admin[0] + " 何か失敗したみたい... エラー:" + text, { in_reply_to_id: json['id'] }, "direct");
+                            console.warn("NG:url:" + json);
                         }
                     });
                 } else {
-                    post("@"+json['account']['acct']+" ...？\nURLが取得できなかった...", {in_reply_to_id: json['id']});
+                    post("@" + json['account']['acct'] + " ...？\nURLが取得できなかった...", { in_reply_to_id: json['id'] });
                 }
             }
         });
@@ -401,31 +401,31 @@ function URL(json) {
 }
 
 function etfav(id) {
-    fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/favourite", {
-        headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+    fetch("https://" + config.domain + "/api/v1/statuses/" + id + "/favourite", {
+        headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
         method: 'POST'
-    }).then(function(response) {
-        if(response.ok) {
+    }).then(function (response) {
+        if (response.ok) {
             return response.json();
         } else {
             console.warn("NG:fav:SERVER");
             return null;
         }
-    }).then(function(json) {
+    }).then(function (json) {
         if (json) {
             if (json["id"]) {
                 console.log("OK:fav");
-                fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/unfavourite", {
-                    headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+                fetch("https://" + config.domain + "/api/v1/statuses/" + id + "/unfavourite", {
+                    headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
                     method: 'POST'
-                }).then(function(response) {
-                    if(response.ok) {
+                }).then(function (response) {
+                    if (response.ok) {
                         return response.json();
                     } else {
                         console.warn("NG:fav:SERVER");
                         return null;
                     }
-                }).then(function(json) {
+                }).then(function (json) {
                     if (json) {
                         if (json["id"]) {
                             console.log("OK:fav");
@@ -434,12 +434,12 @@ function etfav(id) {
                                 eti++;
                             }
                         } else {
-                            console.warn("NG:fav:"+json);
+                            console.warn("NG:fav:" + json);
                         }
                     }
                 });
             } else {
-                console.warn("NG:fav:"+json);
+                console.warn("NG:fav:" + json);
             }
         }
     });
@@ -447,22 +447,22 @@ function etfav(id) {
 
 
 function rt(id) {
-    fetch("https://" + config.domain + "/api/v1/statuses/"+id+"/reblog", {
-        headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+    fetch("https://" + config.domain + "/api/v1/statuses/" + id + "/reblog", {
+        headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
         method: 'POST'
-    }).then(function(response) {
-        if(response.ok) {
+    }).then(function (response) {
+        if (response.ok) {
             return response.json();
         } else {
             console.warn("NG:RT:SERVER");
             return null;
         }
-    }).then(function(json) {
+    }).then(function (json) {
         if (json) {
             if (json["id"]) {
                 console.log("OK:RT");
             } else {
-                console.warn("NG:RT:"+json);
+                console.warn("NG:RT:" + json);
             }
         }
     });
@@ -482,22 +482,22 @@ function post(value, option = {}, visibility = "public", force) {
     }
     if (is_running || force) {
         fetch("https://" + config.domain + "/api/v1/statuses", {
-            headers: {'content-type': 'application/json', 'Authorization': 'Bearer '+config.token},
+            headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
             method: 'POST',
             body: JSON.stringify(optiondata)
-        }).then(function(response) {
-            if(response.ok) {
+        }).then(function (response) {
+            if (response.ok) {
                 return response.json();
             } else {
                 console.warn("NG:POST:SERVER");
                 return null;
             }
-        }).then(function(json) {
+        }).then(function (json) {
             if (json) {
                 if (json["id"]) {
                     console.log("OK:POST");
                 } else {
-                    console.warn("NG:POST:"+json);
+                    console.warn("NG:POST:" + json);
                 }
             }
         });
