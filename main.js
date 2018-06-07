@@ -176,7 +176,7 @@ function AkariBot_main() {
                                     is_talking = false;
                                     rt(json['id']);
 
-                                    if (text.match(/(URL|リンク|短縮)/i) && config.urlshort_api) {
+                                    if (text.match(/(リンク|短縮)/i) && config.urlshort_api) {
                                         URL(json);
                                         is_talking = true;
                                     }
@@ -217,10 +217,10 @@ function AkariBot_main() {
                                             let num_of_people = text.match(/(\d+)人/i);
                                             let result_users = "";
                                             let i = 0, random = 0;
-                                            num_of_people = num_of_people[0] ? num_of_people[0] : 1;
+                                            num_of_people = num_of_people ? num_of_people[0] ? num_of_people[0] : 1 : 1;
                                             while (i < num_of_people) {
                                                 random = Math.floor(Math.random() * r_users.length);
-                                                result_users += " @" + r_users[random];
+                                                result_users += " @" + r_users[random]["acct"];
                                                 r_users.splice(random + 1, 1);
                                                 i++;
                                             }
