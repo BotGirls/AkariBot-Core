@@ -218,7 +218,7 @@ function AkariBot_main() {
                                             let result_users = "";
                                             let i = 0, random = 0;
                                             num_of_people = num_of_people ? num_of_people[1] ? num_of_people[1] : 1 : 1;
-                                            if (num_of_people > num_of_people.length) {
+                                            if (num_of_people > json['mentions'].length) {
                                                 while (i < num_of_people) {
                                                     random = Math.floor(Math.random() * r_users.length);
                                                     result_users += " @" + r_users[random]["acct"];
