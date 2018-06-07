@@ -217,14 +217,18 @@ function AkariBot_main() {
                                             let num_of_people = text.match(/(\d+)人/i);
                                             let result_users = "";
                                             let i = 0, random = 0;
-                                            num_of_people = num_of_people ? num_of_people[0] ? num_of_people[0] : 1 : 1;
-                                            while (i < num_of_people) {
-                                                random = Math.floor(Math.random() * r_users.length);
-                                                result_users += " @" + r_users[random]["acct"];
-                                                r_users.splice(random + 1, 1);
-                                                i++;
+                                            num_of_people = num_of_people ? num_of_people[1] ? num_of_people[1] : 1 : 1;
+                                            if (num_of_people > num_of_people.length) {
+                                                while (i < num_of_people) {
+                                                    random = Math.floor(Math.random() * r_users.length);
+                                                    result_users += " @" + r_users[random]["acct"];
+                                                    r_users.splice(random, 1);
+                                                    i++;
+                                                }
+                                                post("@" + acct + " ルーレットしたよー！\n\n結果:" + result_users);
+                                            } else {
+                                                post("@" + acct + " 人数指定ルーレットは指定した人数+1人を入力してね！", { in_reply_to_id: json['id'] }, "direct");
                                             }
-                                            post("@" + acct + " ルーレットしたよー！\n\n結果:" + result_users);
                                         } else {
                                             post("@" + acct + " ルーレットをする時はルーレットしたいアカウントを2つ以上入力してね！", { in_reply_to_id: json['id'] }, "direct");
                                         }
