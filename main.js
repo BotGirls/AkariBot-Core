@@ -221,32 +221,13 @@ function StartAkariBot(mode) {
 
                                     //埋める
                                     if (text.match(/埋め(たい|ろ|て)/i)) {
-                                        let name = "", postm = 0, postd = 0;
-
-                                        if (text.match(/(神崎|おにいさん|お兄さん)/i)) {
-                                            name = "knzk";
+                                        if (json['mentions'][1]) {
+                                            post("@" + acct + " 一度に埋められる人は1人までだよ！", { in_reply_to_id: json['id'] }, "direct");
+                                        } else if (json['mentions'][0]) {
+                                            umeru(json['mentions'][0]);
                                         } else {
-                                            post("@" + acct + " ごめんね、今は神埼おにいさん以外埋められないの...", { in_reply_to_id: json['id'] }, "direct");
+                                            post("@" + acct + " 埋めたい人のIDを記入してね！", { in_reply_to_id: json['id'] }, "direct");
                                         }
-
-                                        let rand = Math.floor(Math.random() * (30)) + 1;
-                                        let talktext, dead_mode = "";
-                                        if (rand < 5) {
-                                            talktext = "" + rand + "メートルぐらいしか埋められなかった...";
-                                        } else {
-                                            talktext = "" + (rand * 5) + "メートルぐらい埋められたよ！";
-                                            let rand_dead = Math.floor(Math.random() * 21);
-                                            if (rand_dead > 15) {
-                                                dead_mode = "lava";
-                                                talktext += "(マグマに落ちちゃった...)";
-                                            } else if (rand_dead > 10) {
-                                                dead_mode = "water";
-                                                talktext += "(溺れちゃった...)";
-                                            }
-                                        }
-
-                                        post("@" + acct + " と一緒に " + name + " を埋めたら" + talktext);
-                                        console.log("OK:埋める(岩盤):" + acct);
                                         is_talking = true;
                                     }
 
@@ -313,6 +294,27 @@ function save(end) {
             if (end) db.end();
         });
     });
+}
+
+function umeru(user) {
+    let rand = Math.floor(Math.random() * (30)) + 1;
+    let talktext, dead_mode = "";
+    if (rand < 5) {
+        talktext = "" + rand + "メートルぐらいしか埋められなかった...";
+    } else {
+        talktext = "" + (rand * 5) + "メートルぐらい埋められたよ！";
+        let rand_dead = Math.floor(Math.random() * 21);
+        if (rand_dead > 15) {
+            dead_mode = "lava";
+            talktext += "(マグマに落ちちゃった...)";
+        } else if (rand_dead > 10) {
+            dead_mode = "water";
+            talktext += "(溺れちゃった...)";
+        }
+    }
+
+    post("@" + acct + " と一緒に " + user["display_name"] + " を埋めたら" + talktext);
+    console.log("OK:埋める(岩盤):" + acct);
 }
 
 function umeume(depth, name, dead_mode) {
