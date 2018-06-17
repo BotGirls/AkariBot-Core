@@ -91,6 +91,8 @@ function StartAkariBot(mode) {
                     let ord = JSON.parse(message.utf8Data);
                     let json = JSON.parse(ord.payload);
                     if (ord.event === "update") {
+                        if (json['visibility'] !== 'public' && json['visibility'] !== 'unlisted') return;
+
                         if (was_check[json['id']]) return; //HTLとLTLの重複防止
                         was_check[json['id']] = true;
 
