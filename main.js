@@ -10,12 +10,12 @@ let mysql = require('mysql');
 
 let userdata = {};
 let favtype = 1;
+let was_check = {};
 
 let lastup = new Date();
 let lastup_day = lastup.getDate();
 let day_total_fav = {};
 
-let koresuki = {};
 
 if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.db_port ||
     !config.domain || !config.token ||
@@ -23,87 +23,77 @@ if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || 
     console.log("ERROR!:config情報が不足しています！");
     process.exit();
 }
-AkariBot_main();
 
-function reConnect(db) {
+function reConnect(mode) {
     console.log('サーバとの接続が切れました。60秒後にリトライします...');
-    if (db) {
-        save(true, db);
-    }
+    save(true);
     setTimeout(function () {
-        AkariBot_main();
+        StartAkariBot(mode);
     }, 60000);
 }
 
-function AkariBot_main() {
-    let db = mysql.createPool({
-        host: config.db_host,
-        port: config.db_port,
-        user: config.db_user,
-        password: config.db_pass,
-        database: config.db_name
-    });
+let db = mysql.createPool({
+    host: config.db_host,
+    port: config.db_port,
+    user: config.db_user,
+    password: config.db_pass,
+    database: config.db_name
+});
 
-    db.getConnection(function (err, connection) {
-        connection.query('SELECT * FROM `userdata`', function (error, results, fields) {
-            if (error) {
-                console.log("DBERROR: " + error);
-                db.end();
-                process.exit();
-            } else {
-                i = 0;
-                while (results[i]) {
-                    userdata[results[i]["name"]] = JSON.parse(results[i]["data"]);
-                    i++;
-                }
+db.getConnection(function (err, connection) {
+    connection.query('SELECT * FROM `userdata`', function (error, results, fields) {
+        if (error) {
+            console.log("DBERROR: " + error);
+            db.end();
+            process.exit();
+        } else {
+            i = 0;
+            while (results[i]) {
+                userdata[results[i]["name"]] = JSON.parse(results[i]["data"]);
+                i++;
             }
-            connection.query('SELECT * FROM `koresuki` ORDER BY `koresuki`.`date` DESC', function (error, results, fields) {
-                if (error) {
-                    console.log("DBERROR: " + error);
-                    db.end();
-                    process.exit();
-                } else {
-                    let ndate = lastup.getFullYear() + "-" + (lastup.getMonth() + 1) + "-" + lastup.getDate();
-                    if (results[0]["date"] == ndate) {
-                        koresuki["all"] = results[0]["allcount"];
-                        koresuki["user"] = JSON.parse(results[0]["usercount"]);
-                        connection.release();
-                    } else {
-                        connection.query('INSERT INTO `koresuki` (`date`, `allcount`, `usercount`) VALUES (?, \'0\', \'{}\')', [ndate], function (err, result) {
-                            connection.release();
-                            koresuki["all"] = 0;
-                            koresuki["user"] = {};
-                        });
-                    }
-                }
-            });
-        });
+            Start();
+        }
     });
+});
 
+function Start() {
+    let mi = 0, m = ["user", "public:local"];
+    while (m[mi]) {
+        StartAkariBot(m[mi]);
+        mi++;
+    }
+}
+
+function StartAkariBot(mode) {
     let WebSocketClient = require('websocket').client;
     let client = new WebSocketClient();
 
     client.on('connectFailed', function (error) {
         console.log('Connect Error: ' + error.toString());
-        reConnect(db);
+        reConnect(mode);
     });
 
     client.on('connect', function (connection) {
         console.log('WebSocket Client Connected');
         connection.on('error', function (error) {
             console.log("Connection Error: " + error.toString());
-            reConnect(db);
+            reConnect(mode);
         });
         connection.on('close', function () {
-            reConnect(db);
+            reConnect(mode);
             //鯖落ち
         });
         connection.on('message', function (message) {
             //console.log(message);
             try {
                 if (message.type === 'utf8') {
-                    let json = JSON.parse(JSON.parse(message.utf8Data).payload);
-                    if (json['account']) {
+                    let ord = JSON.parse(message.utf8Data);
+                    let json = JSON.parse(ord.payload);
+                    if (ord.event === "update") {
+                        if (was_check[json['id']]) return; //HTLとLTLの重複防止
+                        was_check[json['id']] = true;
+
                         let acct = json['account']['acct'];
                         let text = json['content'];
                         if (acct !== config.bot_id) {
@@ -119,7 +109,7 @@ function AkariBot_main() {
                                         lastup_day = d;
                                         lastup = new Date();
                                         day_total_fav = {};
-                                        save(false, db, true);
+                                        save();
                                     }
                                     if (!day_total_fav[acct]) day_total_fav[acct] = 0;
                                     if (day_total_fav[acct] <= 20) {
@@ -127,14 +117,6 @@ function AkariBot_main() {
                                         day_total_fav[acct]++;
                                         console.log("@" + acct + ":plus_fav");
                                     }
-                                }
-
-                                if (text.match(/これ([す好])き/)) {
-                                    if (!koresuki["user"][acct]) koresuki["user"][acct] = 0;
-                                    if (!koresuki["all"]) koresuki["all"] = 0;
-                                    koresuki["all"]++;
-                                    koresuki["user"][acct]++;
-                                    console.log("koresuki:" + acct);
                                 }
 
                                 if (userdata["fav"][acct] < 20) favtype = 0;
@@ -159,7 +141,7 @@ function AkariBot_main() {
                                         post("そろおち～", {}, "public", true);
                                         change_running(0);
                                         console.log("OK:STOP:@" + acct);
-                                        save(false, db);
+                                        save();
                                     }
                                 }
 
@@ -191,7 +173,7 @@ function AkariBot_main() {
                                         }
 
                                         if (admin_pm) {
-                                            save(false, db);
+                                            save();
                                         }
                                         is_talking = true;
                                     }
@@ -206,7 +188,7 @@ function AkariBot_main() {
                                         }
 
                                         if (admin_pm) {
-                                            save(false, db);
+                                            save();
                                         }
                                         is_talking = true;
                                     }
@@ -261,7 +243,7 @@ function AkariBot_main() {
                                             }
                                         }
 
-                                        post("@" + acct + " と一緒に " + name + " を埋めたら" + talktext + "\n\n\n" + umeume(rand, name, dead_mode), { cw: "ｺﾞｺﾞｺﾞｺﾞｺﾞｺﾞ..." });
+                                        post("@" + acct + " と一緒に " + name + " を埋めたら" + talktext);
                                         console.log("OK:埋める(岩盤):" + acct);
                                         is_talking = true;
                                     }
@@ -271,7 +253,7 @@ function AkariBot_main() {
                                         setTimeout(function () {
                                             if (userdata["fav"][acct] > 20) {
                                                 post("@" + acct + " たこ焼きど～ぞ！\n\n" +
-                                                    "[large=5x]:takoyaki:[/large]");
+                                                    ":takoyaki:");
                                             } else {
                                                 post("@" + acct + " えぇ...あなたにはちょっと...", { in_reply_to_id: json['id'] });
                                             }
@@ -300,40 +282,33 @@ function AkariBot_main() {
                                 }
                             }
                         }
+                    } else if (ord.event === "notification") {
+                        if (json["type"] === "follow" && json["account"]["id"]) {
+                            follow(json["account"]["id"]);
+                        }
                     }
                 }
             } catch (e) {
                 post("@" + config.bot_admin[0] + " 【エラー検知】\n\n" + e, {}, "direct", true);
-                save(false, db);
+                save();
                 post("ごほっ、ごほっ...\n" +
-                    "ちょっと体調悪いから休む...\n\n" +
-                    "【エラーが発生したため停止します】");
+                    "ちょっと体調悪いから休む...");
                 change_running(0);
             }
         });
     });
 
-    client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + config.token + "&stream=public:local");
+    client.connect("wss://" + config.domain + "/api/v1/streaming/?access_token=" + config.token + "&stream=" + mode);
 }
 
 
 // ここからいろいろ
-function save(end, db, reset) {
+function save(end) {
     db.getConnection(function (err, connection) {
         connection.query('UPDATE `userdata` SET `data` = ? WHERE `userdata`.`name` = \'fav\'', [JSON.stringify(userdata["fav"])], function (err, result) {
             console.log("OK:SAVE");
-
-            let olddate = reset ? new Date(lastup.getFullYear(), lastup.getMonth(), lastup.getDate() - 1) : new Date();
-            let olddate_disp = olddate.getFullYear() + "-" + (olddate.getMonth() + 1) + "-" + olddate.getDate();
-            connection.query('UPDATE `koresuki` SET `allcount` = ?, `usercount` = ? WHERE `koresuki`.`date` = ?', [koresuki["all"], JSON.stringify(koresuki["user"]), olddate_disp], function (err, result) {
-                console.log("OK:SAVE:2");
-                if (reset) {
-                    koresuki["all"] = 0;
-                    koresuki["user"] = {};
-                }
-                connection.release();
-                if (end) db.end();
-            });
+            connection.release();
+            if (end) db.end();
         });
     });
 }
@@ -506,6 +481,28 @@ function post(value, option = {}, visibility = "public", force) {
             }
         });
     }
+}
+
+function follow(id) {
+    fetch("https://" + config.domain + "/api/v1/accounts/" + id + "/follow", {
+        headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
+        method: 'POST'
+    }).then(function (response) {
+        if (response.ok) {
+            return response.json();
+        } else {
+            console.warn("NG:FOLLOW:SERVER");
+            return null;
+        }
+    }).then(function (json) {
+        if (json) {
+            if (json["id"]) {
+                console.log("OK:FOLLOW");
+            } else {
+                console.warn("NG:FOLLOW:" + json);
+            }
+        }
+    });
 }
 
 function change_running(mode) {
