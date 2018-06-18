@@ -491,7 +491,7 @@ function post_upimg(value, option = {}, visibility = "public", force, blob) {
         var formData = new FormData();
         formData.append('file', blob);
         fetch("https://" + config.domain + "/api/v1/media", {
-            headers: { 'Authorization': 'Bearer ' + config.token },
+            headers: { 'content-type': 'multipart/form-data', 'Authorization': 'Bearer ' + config.token },
             method: 'POST',
             body: formData
         }).then(function (response) {
