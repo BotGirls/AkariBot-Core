@@ -323,7 +323,7 @@ function umeru(user) {
         } else if (rand_dead > 10) {
             dead_mode = "water";
             talktext += "(溺れちゃった...)";
-        } else if (depth > 28) { //岩盤
+        } else if (rand > 28) { //岩盤
             dead_mode = "bedrock";
         }
     }
