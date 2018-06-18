@@ -357,7 +357,7 @@ function umeru(user, acct) {
                                 ctx.drawImage(image, 0, 0)
 
                                 loadImage('data/tmp/umeume_user.png').then((image2) => {
-                                    ctx.drawImage(image2, 90, 90, 180, 180)
+                                    ctx.drawImage(image2, 145, 145, 90, 90)
 
                                     var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
                                     fs.writeFileSync('data/tmp/umeume_result.png', blobdata, 'binary');
