@@ -12,7 +12,6 @@ let mysql = require('mysql');
 const { createCanvas, loadImage } = require('canvas');
 const request = require('request');
 const fs = require('fs');
-const FormData = require('form-data');
 
 let userdata = {};
 let favtype = 1;
@@ -361,7 +360,8 @@ function umeru(user, acct) {
                                     ctx.drawImage(image2, 90, 90, 180, 180)
 
                                     var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
-                                    post_upimg("@" + acct + " と一緒に " + json["display_name"] + " を埋めたら" + talktext, {}, "public", false, blobdata);
+                                    fs.writeFileSync('data/tmp/umeume_result.png', blobdata, 'binary');
+                                    post_upimg("@" + acct + " と一緒に " + json["display_name"] + " を埋めたら" + talktext, {}, "public", false, 'data/tmp/umeume_result.png');
                                     console.log("OK:埋める:" + acct);
                                 })
                             })
@@ -486,23 +486,18 @@ function rt(id) {
     });
 }
 
-function post_upimg(value, option = {}, visibility = "public", force, blob) {
+function post_upimg(value, option = {}, visibility = "public", force, imageurl) {
     if (is_running || force) {
-        var formData = new FormData();
-        formData.append('file', blob);
-        fetch("https://" + config.domain + "/api/v1/media", {
-            headers: { 'content-type': 'multipart/form-data', 'Authorization': 'Bearer ' + config.token },
-            method: 'POST',
-            body: formData
-        }).then(function (response) {
-            if (response.ok) {
-                return response.json();
-            } else {
-                console.warn("NG:POST_IMG:SERVER", response);
-                return null;
+        request.post({
+            url: "https://" + config.domain + "/api/v1/media",
+            headers: {
+                'Authorization': 'Bearer ' + config.token
+            },
+            formData: {
+                'file': fs.createReadStream(imageurl)
             }
-        }).then(function (json) {
-            if (json) {
+        }, function (error, response, json) {
+            if (!error && response.statusCode == 200) {
                 if (json["id"] && json["type"] !== "unknown") {
                     console.log("OK:POST_IMG", json);
                     option["media_ids"] = [json["id"]];
@@ -510,7 +505,9 @@ function post_upimg(value, option = {}, visibility = "public", force, blob) {
                 } else {
                     console.warn("NG:POST_IMG:", json);
                 }
-            }
+            } else {
+                console.warn("NG:POST_IMG:SERVER:", error);
+            };
         });
     }
 }
