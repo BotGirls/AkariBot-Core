@@ -12,6 +12,7 @@ let mysql = require('mysql');
 const { createCanvas, loadImage } = require('canvas');
 const request = require('request');
 const fs = require('fs');
+const FormData = require('form-data');
 
 let userdata = {};
 let favtype = 1;
@@ -487,10 +488,12 @@ function rt(id) {
 
 function post_upimg(value, option = {}, visibility = "public", force, blob) {
     if (is_running || force) {
+        var formData = new FormData();
+        formData.append('file', blob);
         fetch("https://" + config.domain + "/api/v1/media", {
-            headers: { 'content-type': 'multipart/form-data', 'Authorization': 'Bearer ' + config.token },
+            headers: { 'Authorization': 'Bearer ' + config.token },
             method: 'POST',
-            body: { 'file': blob }
+            body: formData
         }).then(function (response) {
             if (response.ok) {
                 return response.json();
