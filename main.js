@@ -350,6 +350,7 @@ function umeru(user) {
                 },
                     function (error, response, blob) {
                         if (!error && response.statusCode === 200) {
+                            console.log("OK:IMAGEGET:" + acct);
                             fs.writeFileSync('data/tmp/umeume_user.png', blob, 'binary');
 
                             loadImage('data/images/' + dead_mode + '.png').then((image) => {
@@ -363,6 +364,8 @@ function umeru(user) {
                                     console.log("OK:埋める:" + acct);
                                 })
                             })
+                        } else {
+                            console.warn("NG:IMAGEGET:" + acct);
                         }
                     }
                 );
