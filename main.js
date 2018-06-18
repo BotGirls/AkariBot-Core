@@ -327,50 +327,50 @@ function umeru(user) {
             dead_mode = "bedrock";
         }
     }
-    
-const canvas = createCanvas(380, 380)
-const ctx = canvas.getContext('2d')
-fetch("https://" + config.domain + "/api/v1/accounts/" + user["id"], {
-    headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
-    method: 'POST'
-}).then(function (response) {
-    if (response.ok) {
-        return response.json();
-    } else {
-        console.warn("NG:USERGET:SERVER");
-        return null;
-    }
-}).then(function (json) {
-    if (json) {
-        if (json["id"]) {
-            request({
-                method: 'GET',
-                url: user["avatar_static"],
-                encoding: null
-              },
-                function (error, response, blob) {
-                    if(!error && response.statusCode === 200) {
-                      fs.writeFileSync('data/tmp/umeume_user.png', blob, 'binary');
-              
-                      loadImage('data/images/' + dead_mode + '.png').then((image) => {
-                        ctx.drawImage(image, 0, 0)
-                  
-                        loadImage('data/tmp/umeume_user.png').then((image2) => {
-                          ctx.drawImage(image2, 90, 90, 180, 180)
-              
-                          var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
-                          post_upimg("@" + acct + " と一緒に " + user["display_name"] + " を埋めたら" + talktext, {}, "public", false, blobdata);
-                          console.log("OK:埋める:" + acct);
-                        })
-                      })
-                    }
-                }
-              );
+
+    const canvas = createCanvas(380, 380)
+    const ctx = canvas.getContext('2d')
+    fetch("https://" + config.domain + "/api/v1/accounts/" + user["id"], {
+        headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
+        method: 'GET'
+    }).then(function (response) {
+        if (response.ok) {
+            return response.json();
         } else {
-            console.warn("NG:USERGET:" + json);
+            console.warn("NG:USERGET:SERVER");
+            return null;
         }
-    }
-});
+    }).then(function (json) {
+        if (json) {
+            if (json["id"]) {
+                request({
+                    method: 'GET',
+                    url: user["avatar_static"],
+                    encoding: null
+                },
+                    function (error, response, blob) {
+                        if (!error && response.statusCode === 200) {
+                            fs.writeFileSync('data/tmp/umeume_user.png', blob, 'binary');
+
+                            loadImage('data/images/' + dead_mode + '.png').then((image) => {
+                                ctx.drawImage(image, 0, 0)
+
+                                loadImage('data/tmp/umeume_user.png').then((image2) => {
+                                    ctx.drawImage(image2, 90, 90, 180, 180)
+
+                                    var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
+                                    post_upimg("@" + acct + " と一緒に " + user["display_name"] + " を埋めたら" + talktext, {}, "public", false, blobdata);
+                                    console.log("OK:埋める:" + acct);
+                                })
+                            })
+                        }
+                    }
+                );
+            } else {
+                console.warn("NG:USERGET:" + json);
+            }
+        }
+    });
 }
 
 function URL(json) {
@@ -487,26 +487,26 @@ function post_upimg(value, option = {}, visibility = "public", force, blob) {
         var formData = new FormData();
         formData.append('file', blob);
         fetch("https://" + config.domain + "/api/v1/media", {
-                headers: {'Authorization': 'Bearer '+config.token},
-                method: 'POST',
-                body: formData
-            }).then(function(response) {
-                if(response.ok) {
-                    return response.json();
+            headers: { 'Authorization': 'Bearer ' + config.token },
+            method: 'POST',
+            body: formData
+        }).then(function (response) {
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.warn("NG:POST_IMG:SERVER", response);
+                return null;
+            }
+        }).then(function (json) {
+            if (json) {
+                if (json["id"] && json["type"] !== "unknown") {
+                    console.log("OK:POST_IMG", json);
+                    option["media_ids"] = [json["id"]];
+                    post(value, option, visibility, force);
                 } else {
-                    console.warn("NG:POST_IMG:SERVER", response);
-                    return null;
+                    console.warn("NG:POST_IMG:", json);
                 }
-            }).then(function(json) {
-                if (json) {
-                    if (json["id"] && json["type"] !== "unknown") {
-                        console.log("OK:POST_IMG", json);
-                        option["media_ids"] = [json["id"]];
-                        post(value, option, visibility, force);
-                    } else {
-                        console.warn("NG:POST_IMG:",json);
-                    }
-                }
+            }
         });
     }
 }
