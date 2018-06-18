@@ -8,6 +8,11 @@ talk_data_base[2] = require('./data/talk/like');
 let fetch = require('node-fetch');
 let mysql = require('mysql');
 
+// 埋め埋め
+const { createCanvas, loadImage } = require('canvas');
+const request = require('request');
+const fs = require('fs');
+
 let userdata = {};
 let favtype = 1;
 let was_check = {};
@@ -225,7 +230,12 @@ function StartAkariBot(mode) {
                                         if (json['mentions'][1]) {
                                             post("@" + acct + " 一度に埋められる人は1人までだよ！", { in_reply_to_id: json['id'] }, "direct");
                                         } else if (json['mentions'][0]) {
-                                            umeru(json['mentions'][0]);
+                                            if (json['mentions'][0]["acct"] === config.bot_id || json['mentions'][0]["acct"] === acct) {
+                                                let deny_who = json['mentions'][0]["acct"] === config.bot_id ? "私" : "あなた";
+                                                post("@" + acct + " " + deny_who + "は埋められないよぉ！？", { in_reply_to_id: json['id'] }, "direct");
+                                            } else {
+                                                umeru(json['mentions'][0]);
+                                            }
                                         } else {
                                             post("@" + acct + " 埋めたい人のIDを記入してね！", { in_reply_to_id: json['id'] }, "direct");
                                         }
@@ -302,45 +312,65 @@ function umeru(user) {
     let talktext, dead_mode = "";
     if (rand < 5) {
         talktext = "" + rand + "メートルぐらいしか埋められなかった...";
+        dead_mode = "dirt_and_stone";
     } else {
         talktext = "" + (rand * 5) + "メートルぐらい埋められたよ！";
         let rand_dead = Math.floor(Math.random() * 21);
+        dead_mode = "stone";
         if (rand_dead > 15) {
             dead_mode = "lava";
             talktext += "(マグマに落ちちゃった...)";
         } else if (rand_dead > 10) {
             dead_mode = "water";
             talktext += "(溺れちゃった...)";
+        } else if (depth > 28) { //岩盤
+            dead_mode = "bedrock";
         }
     }
-
-    post("@" + acct + " と一緒に " + user["display_name"] + " を埋めたら" + talktext);
-    console.log("OK:埋める(岩盤):" + acct);
-}
-
-function umeume(depth, name, dead_mode) {
-    let res = "", is_bedrock = false, i = 0, block = "";
-
-    if (depth > 28) is_bedrock = true;
-
-    depth -= 3;
-    res = ":minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:​:minecraft_dirt:\n";
-
-    while (i <= depth) {
-        res += ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:\n";
-        i++;
-    }
-    if (dead_mode === "lava") block = "minecraft_lava";
-    else if (dead_mode === "water") block = "minecraft_water";
-
-    if (dead_mode) {
-        res += ":" + block + ":​:" + block + ":​:" + name + ":​:" + block + ":​:" + block + ":\n";
-        res += ":" + block + ":​:" + block + ":​:" + block + ":​:" + block + ":​:" + block + ":";
+    
+const canvas = createCanvas(380, 380)
+const ctx = canvas.getContext('2d')
+fetch("https://" + config.domain + "/api/v1/accounts/" + user["id"], {
+    headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + config.token },
+    method: 'POST'
+}).then(function (response) {
+    if (response.ok) {
+        return response.json();
     } else {
-        res += ":minecraft_stone:​:minecraft_stone:​:" + name + ":​:minecraft_stone:​:minecraft_stone:\n";
-        res += is_bedrock ? ":minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:​:minecraft_bedrock:" : ":minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:​:minecraft_stone:";
+        console.warn("NG:USERGET:SERVER");
+        return null;
     }
-    return res;
+}).then(function (json) {
+    if (json) {
+        if (json["id"]) {
+            request({
+                method: 'GET',
+                url: user["avatar_static"],
+                encoding: null
+              },
+                function (error, response, blob) {
+                    if(!error && response.statusCode === 200) {
+                      fs.writeFileSync('data/tmp/umeume_user.png', blob, 'binary');
+              
+                      loadImage('data/images/' + dead_mode + '.png').then((image) => {
+                        ctx.drawImage(image, 0, 0)
+                  
+                        loadImage('data/tmp/umeume_user.png').then((image2) => {
+                          ctx.drawImage(image2, 90, 90, 180, 180)
+              
+                          var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
+                          post_upimg("@" + acct + " と一緒に " + user["display_name"] + " を埋めたら" + talktext, {}, "public", false, blobdata);
+                          console.log("OK:埋める:" + acct);
+                        })
+                      })
+                    }
+                }
+              );
+        } else {
+            console.warn("NG:USERGET:" + json);
+        }
+    }
+});
 }
 
 function URL(json) {
@@ -452,6 +482,35 @@ function rt(id) {
     });
 }
 
+function post_upimg(value, option = {}, visibility = "public", force, blob) {
+    if (is_running || force) {
+        var formData = new FormData();
+        formData.append('file', blob);
+        fetch("https://" + config.domain + "/api/v1/media", {
+                headers: {'Authorization': 'Bearer '+config.token},
+                method: 'POST',
+                body: formData
+            }).then(function(response) {
+                if(response.ok) {
+                    return response.json();
+                } else {
+                    console.warn("NG:POST_IMG:SERVER", response);
+                    return null;
+                }
+            }).then(function(json) {
+                if (json) {
+                    if (json["id"] && json["type"] !== "unknown") {
+                        console.log("OK:POST_IMG", json);
+                        option["media_ids"] = [json["id"]];
+                        post(value, option, visibility, force);
+                    } else {
+                        console.warn("NG:POST_IMG:",json);
+                    }
+                }
+        });
+    }
+}
+
 function post(value, option = {}, visibility = "public", force) {
     var optiondata = {
         status: value,
@@ -463,6 +522,9 @@ function post(value, option = {}, visibility = "public", force) {
     }
     if (option.in_reply_to_id) {
         optiondata.in_reply_to_id = option.in_reply_to_id;
+    }
+    if (option.media_ids) {
+        optiondata.media_ids = option.media_ids;
     }
     if (is_running || force) {
         fetch("https://" + config.domain + "/api/v1/statuses", {
