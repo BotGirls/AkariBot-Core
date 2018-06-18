@@ -234,7 +234,7 @@ function StartAkariBot(mode) {
                                                 let deny_who = json['mentions'][0]["acct"] === config.bot_id ? "私" : "あなた";
                                                 post("@" + acct + " " + deny_who + "は埋められないよぉ！？", { in_reply_to_id: json['id'] }, "direct");
                                             } else {
-                                                umeru(json['mentions'][0]);
+                                                umeru(json['mentions'][0], acct);
                                             }
                                         } else {
                                             post("@" + acct + " 埋めたい人のIDを記入してね！", { in_reply_to_id: json['id'] }, "direct");
@@ -307,7 +307,7 @@ function save(end) {
     });
 }
 
-function umeru(user) {
+function umeru(user, acct) {
     let rand = Math.floor(Math.random() * (30)) + 1;
     let talktext, dead_mode = "";
     if (rand < 5) {
@@ -345,7 +345,7 @@ function umeru(user) {
             if (json["id"]) {
                 request({
                     method: 'GET',
-                    url: user["avatar_static"],
+                    url: json["avatar_static"],
                     encoding: null
                 },
                     function (error, response, blob) {
@@ -360,12 +360,12 @@ function umeru(user) {
                                     ctx.drawImage(image2, 90, 90, 180, 180)
 
                                     var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
-                                    post_upimg("@" + acct + " と一緒に " + user["display_name"] + " を埋めたら" + talktext, {}, "public", false, blobdata);
+                                    post_upimg("@" + acct + " と一緒に " + json["display_name"] + " を埋めたら" + talktext, {}, "public", false, blobdata);
                                     console.log("OK:埋める:" + acct);
                                 })
                             })
                         } else {
-                            console.warn("NG:IMAGEGET:" + acct);
+                            console.warn("NG:IMAGEGET");
                         }
                     }
                 );
