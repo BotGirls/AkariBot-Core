@@ -6,3 +6,6 @@ Thumbs.db
 node_modules/
 
 config.js
+
+data/tmp/*
+!.gitkeep
