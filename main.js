@@ -487,12 +487,10 @@ function rt(id) {
 
 function post_upimg(value, option = {}, visibility = "public", force, blob) {
     if (is_running || force) {
-        var formData = new FormData();
-        formData.append('file', blob);
         fetch("https://" + config.domain + "/api/v1/media", {
-            headers: { 'Authorization': 'Bearer ' + config.token },
+            headers: { 'content-type': 'multipart/form-data', 'Authorization': 'Bearer ' + config.token },
             method: 'POST',
-            body: formData
+            body: { 'file': blob }
         }).then(function (response) {
             if (response.ok) {
                 return response.json();
