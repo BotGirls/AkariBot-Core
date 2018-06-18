@@ -498,6 +498,7 @@ function post_upimg(value, option = {}, visibility = "public", force, imageurl) 
             }
         }, function (error, response, json) {
             if (!error && response.statusCode == 200) {
+                json = JSON.parse(json);
                 if (json["id"] && json["type"] !== "unknown") {
                     console.log("OK:POST_IMG", json);
                     option["media_ids"] = [json["id"]];
