@@ -128,9 +128,9 @@ function StartAkariBot(mode) {
                                     }
                                 }
 
-                                if (userdata["fav"][acct] < 20) favtype = 0;
-                                else if (userdata["fav"][acct] < 100) favtype = 1;
-                                else if (userdata["fav"][acct] < 200) favtype = 2;
+                                if (userdata["fav"][acct] < 20) favtype = 0; //20点未満
+                                else if (userdata["fav"][acct] < 100) favtype = 1; //100点未満
+                                else if (userdata["fav"][acct] < 200) favtype = 2; //200点未満
                                 //else if (userdata["fav"][acct] >= 200) favtype = 3;
 
                                 //終了
@@ -309,12 +309,15 @@ function save(end) {
 }
 
 function umeru(user, acct) {
-    let rand = Math.floor(Math.random() * (30)) + 1;
+    const is_honki = !!(userdata["fav"][acct] > 99);
+    let rand = Math.floor(Math.random() * is_honki ? 500 : 30) + 1;
     let talktext, dead_mode = "";
     if (rand < 5) {
+        honki_text = " ";
         talktext = "" + rand + "メートルぐらいしか埋められなかった...";
         dead_mode = "dirt_and_stone";
     } else {
+        honki_text = is_honki ? "本気で" : " ";
         talktext = "" + (rand * 5) + "メートルぐらい埋められたよ！";
         let rand_dead = Math.floor(Math.random() * 21);
         dead_mode = "stone";
@@ -362,7 +365,7 @@ function umeru(user, acct) {
 
                                     var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
                                     fs.writeFileSync('data/tmp/umeume_result.png', blobdata, 'binary');
-                                    post_upimg("@" + acct + " と一緒に " + json["display_name"] + " を埋めたら" + talktext, {}, config.post_privacy, false, 'data/tmp/umeume_result.png');
+                                    post_upimg("@" + acct + " と一緒に" + honki_text + " " + json["display_name"] + " を埋めたら" + talktext, {}, config.post_privacy, false, 'data/tmp/umeume_result.png');
                                     console.log("OK:埋める:" + acct);
                                 })
                             })
