@@ -9,4 +9,6 @@ exports.db_name = "Name";
 exports.db_pass = "PassWord";
 
 exports.bot_id = "yuzu";
-exports.bot_admin = ["y", "imncls", "Knzk"]; //先頭のユーザーが一番権限が強いです
+exports.bot_admin = ["y", "imbsky", "Knzk"]; //先頭のユーザーが一番権限が強いです
+
+exports.post_privacy = "public";

@@ -24,7 +24,8 @@ let day_total_fav = {};
 
 if (!config.db_host || !config.db_user || !config.db_pass || !config.db_name || !config.db_port ||
     !config.domain || !config.token ||
-    !config.bot_id || !config.bot_admin) {
+    !config.bot_id || !config.bot_admin ||
+    !config.post_privacy) {
     console.log("ERROR!:config情報が不足しています！");
     process.exit();
 }
@@ -96,7 +97,7 @@ function StartAkariBot(mode) {
                     let ord = JSON.parse(message.utf8Data);
                     let json = JSON.parse(ord.payload);
                     if (ord.event === "update") {
-                        if (json['visibility'] !== 'public' && json['visibility'] !== 'unlisted') return;
+                        if (json['visibility'] !== 'public' && json['visibility'] !== config.post_privacy && json['visibility'] !== 'unlisted') return;
                         if (json['reblog']) return;
 
                         if (was_check[json['id']]) return; //HTLとLTLの重複防止
@@ -146,7 +147,7 @@ function StartAkariBot(mode) {
                                         if (acct !== config.bot_admin[0]) {
                                             post("@" + acct + " @" + config.bot_admin[0] + " 終了しました。", {}, "direct");
                                         }
-                                        post("そろおち～", {}, "public", true);
+                                        post("そろおち～", {}, config.post_privacy, true);
                                         change_running(0);
                                         console.log("OK:STOP:@" + acct);
                                         save();
@@ -361,7 +362,7 @@ function umeru(user, acct) {
 
                                     var blobdata = new Buffer((canvas.toDataURL()).split(",")[1], 'base64');
                                     fs.writeFileSync('data/tmp/umeume_result.png', blobdata, 'binary');
-                                    post_upimg("@" + acct + " と一緒に " + json["display_name"] + " を埋めたら" + talktext, {}, "public", false, 'data/tmp/umeume_result.png');
+                                    post_upimg("@" + acct + " と一緒に " + json["display_name"] + " を埋めたら" + talktext, {}, config.post_privacy, false, 'data/tmp/umeume_result.png');
                                     console.log("OK:埋める:" + acct);
                                 })
                             })
@@ -486,7 +487,7 @@ function rt(id) {
     });
 }
 
-function post_upimg(value, option = {}, visibility = "public", force, imageurl) {
+function post_upimg(value, option = {}, visibility = config.post_privacy, force, imageurl) {
     if (is_running || force) {
         request.post({
             url: "https://" + config.domain + "/api/v1/media",
@@ -513,7 +514,7 @@ function post_upimg(value, option = {}, visibility = "public", force, imageurl) 
     }
 }
 
-function post(value, option = {}, visibility = "public", force) {
+function post(value, option = {}, visibility = config.post_privacy, force) {
     var optiondata = {
         status: value,
         visibility: visibility
