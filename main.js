@@ -288,7 +288,7 @@ function StartAkariBot(mode) {
                                                                     if (!error && response.statusCode === 200) {
                                                                         console.log("OK:IMAGEGET_EFFECT:" + acct);
                                                                         imagetype = jsoni["avatar_static"].match(/\.(jpeg|jpg|png|gif)/i)[0];
-                                                                        fs.writeFileSync('data/tmp/effect_user' + imagetype, blob, 'binary');
+                                                                        fs.writeFileSync('data/tmp/effect_user' + json["id"] + imagetype, blob, 'binary');
                                                                         image_effect(imagetype, json, (" @" + jsoni["acct"] + " で "));
                                                                     } else {
                                                                         console.warn("NG:IMAGEGET_EFFECT");
@@ -315,7 +315,7 @@ function StartAkariBot(mode) {
                                                             if (!error && response.statusCode === 200) {
                                                                 console.log("OK:IMAGEGET_EFFECT:MEDIA");
                                                                 imagetype = json['media_attachments'][0]["preview_url"].match(/\.(jpeg|jpg|png|gif)/i)[0];
-                                                                fs.writeFileSync('data/tmp/effect_user' + imagetype, blob, 'binary');
+                                                                fs.writeFileSync('data/tmp/effect_user' + json["id"] + imagetype, blob, 'binary');
                                                                 image_effect(imagetype, json);
                                                             } else {
                                                                 console.warn("NG:IMAGEGET_EFFECT");
@@ -385,7 +385,7 @@ function save(end) {
 
 function image_effect(imagetype, json, addtext = "") {
     console.log(addtext);
-    loadImage('data/tmp/effect_user' + imagetype).then((image) => {
+    loadImage('data/tmp/effect_user' + json["id"] + imagetype).then((image) => {
         var mode = {};
         if (json['content'].match(/(対照|waaw|反転|シンメトリー)/i)) {
             mode["base"] = "vanila";
@@ -483,19 +483,19 @@ function image_effect(imagetype, json, addtext = "") {
             }
 
             var blobdata = new Buffer((canvas_origin.toDataURL()).split(",")[1], 'base64');
-            fs.writeFileSync('data/tmp/effect_result' + imagetype, blobdata, 'binary');
-            post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + imagetype);
+            fs.writeFileSync('data/tmp/effect_result' + json["id"] + imagetype, blobdata, 'binary');
+            post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + json["id"] + imagetype);
         } else if (mode["base"] === "effect") {
             var options = {
-                image: 'data/tmp/effect_user' + imagetype,
-                to: 'data/tmp/effect_result' + imagetype,
+                image: 'data/tmp/effect_user' + json["id"] + imagetype,
+                to: 'data/tmp/effect_result' + json["id"] + imagetype,
                 level: 5
             };
 
             var callback = function (error) {
                 if (!error) {
                     console.log("The effect was applied to your image !");
-                    post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + imagetype);
+                    post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + json["id"] + imagetype);
                 }
             }
             //https://www.npmjs.com/package/effect
@@ -533,7 +533,7 @@ function image_effect(imagetype, json, addtext = "") {
             request.post({
                 url: "http://photofunia.com/categories/" + tt[mode["type"]],
                 formData: {
-                    'image': fs.createReadStream('data/tmp/effect_user' + imagetype)
+                    'image': fs.createReadStream('data/tmp/effect_user' + json["id"] + imagetype)
                 },
                 followAllRedirects: true
             },
@@ -549,8 +549,8 @@ function image_effect(imagetype, json, addtext = "") {
                             function (error, response, blob) {
                                 if (!error && response.statusCode === 200) {
                                     filet = urld.match(/\.(jpg|png|gif)/i)[0];
-                                    fs.writeFileSync('data/tmp/effect_result' + filet, blob, 'binary');
-                                    post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + filet);
+                                    fs.writeFileSync('data/tmp/effect_result' + json["id"] + filet, blob, 'binary');
+                                    post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + json["id"] + filet);
                                 }
                             }
                         );
