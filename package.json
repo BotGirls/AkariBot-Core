@@ -5,7 +5,9 @@
   "main": "main.js",
   "dependencies": {
     "canvas": "^2.0.0-alpha.12",
+    "effect": "^1.0.4",
     "fs": "0.0.1-security",
+    "jsdom": "^11.11.0",
     "mysql": "^2.15.0",
     "node-fetch": "^1.7.3",
     "npm": "^5.6.0",
