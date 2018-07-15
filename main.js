@@ -288,7 +288,7 @@ function StartAkariBot(mode) {
                                                                     if (!error && response.statusCode === 200) {
                                                                         console.log("OK:IMAGEGET_EFFECT:" + acct);
                                                                         imagetype = jsoni["avatar_static"].match(/\.(jpeg|jpg|png|gif)/i)[0];
-                                                                        fs.writeFileSync('data/tmp/effect_user'+imagetype, blob, 'binary');
+                                                                        fs.writeFileSync('data/tmp/effect_user' + imagetype, blob, 'binary');
                                                                         image_effect(imagetype, json, (" @" + jsoni["acct"] + " で "));
                                                                     } else {
                                                                         console.warn("NG:IMAGEGET_EFFECT");
@@ -315,7 +315,7 @@ function StartAkariBot(mode) {
                                                             if (!error && response.statusCode === 200) {
                                                                 console.log("OK:IMAGEGET_EFFECT:MEDIA");
                                                                 imagetype = json['media_attachments'][0]["preview_url"].match(/\.(jpeg|jpg|png|gif)/i)[0];
-                                                                fs.writeFileSync('data/tmp/effect_user'+imagetype, blob, 'binary');
+                                                                fs.writeFileSync('data/tmp/effect_user' + imagetype, blob, 'binary');
                                                                 image_effect(imagetype, json);
                                                             } else {
                                                                 console.warn("NG:IMAGEGET_EFFECT");
@@ -385,154 +385,180 @@ function save(end) {
 
 function image_effect(imagetype, json, addtext = "") {
     console.log(addtext);
-loadImage('data/tmp/effect_user'+imagetype).then((image) => {
-    var mode = {};
-    if (json['content'].match(/(対照|waaw|反転|シンメトリー)/i)) {
-        mode["base"] = "vanila";
-        mode["type"] = json['content'].match(/(タイプ2|Type2|モード2|waaw2)/i) ? "waaw2" : "waaw";
-    } else if (json['content'].match(/(ブラー|ぼかし|blur)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "blur";
-    } else if (json['content'].match(/(シャープ|sharpen)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "sharpen";
-    } else if (json['content'].match(/(アンシャープ|unsharp)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "unsharp";
-    } else if (json['content'].match(/(threshold)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "threshold";
-    } else if (json['content'].match(/(油彩|オイルペイント|oilpaint)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "oilpaint";
-    } else if (json['content'].match(/(メタル|metal)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "metal";
-    } else if (json['content'].match(/(エッジ|edge)/i)) {
-        mode["base"] = "effect";
-        mode["type"] = "edge";
-    } else if (json['content'].match(/(火|燃や|burn)/i)) {
-        mode["base"] = "funia";
-        if (json['content'].match(/(写真|photo)/i)) mode["type"] = 12;
-        else mode["type"] = json['content'].match(/(タイプ1|Type1|モード1|gif|動)/i) ? 0 : 1;
-    } else if (json['content'].match(/(お尋ね|wanted)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 2;
-    } else if (json['content'].match(/(タトゥー|tattoo)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 3;
-    } else if (json['content'].match(/(スパイ|シークレット|secret)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 4;
-    } else if (json['content'].match(/(スクリーン|screen)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 5;
-    } else if (json['content'].match(/(シャンパン|champagne)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 6;
-    } else if (json['content'].match(/(トラック|truck)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 7;
-    } else if (json['content'].match(/(ミュージアム|museum)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 8;
-    } else if (json['content'].match(/(ドル|dollar)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 9;
-    } else if (json['content'].match(/(動画|vhs)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 10;
-    } else if (json['content'].match(/(スケッチ|鉛筆|sketch)/i)) {
-        mode["base"] = "funia";
-        mode["type"] = 11;
-    } else {
-        post("@" + acct + " 画像エフェクトを使用するには、エフェクトモードを指定する必要があるよ！\n画像エフェクトのドキュメント: 準備中", { in_reply_to_id: json['id'] }, "direct");
-        return false;
-    }
-      var canvas_origin = createCanvas(image.width, image.height)
-      var ctx = canvas_origin.getContext('2d');
-
-      if (mode["base"] === "vanila") {
-        if (mode["type"] === "waaw") {
-          ctx.drawImage(image, 0, 0);
-          ctx.scale(-1,1);
-          ctx.drawImage(image, -image.width, 0, -image.width/2, image.height, 0, 0, -image.width/2, image.height);
-        } else if (mode["type"] === "waaw2") {
-            ctx.scale(-1,1);
-            ctx.drawImage(image, -image.width, 0);
-            ctx.scale(-1,1);
-            ctx.drawImage(image, 0, 0, image.width/2, image.height, 0, 0, image.width/2, image.height);
+    loadImage('data/tmp/effect_user' + imagetype).then((image) => {
+        var mode = {};
+        if (json['content'].match(/(対照|waaw|反転|シンメトリー)/i)) {
+            mode["base"] = "vanila";
+            mode["type"] = json['content'].match(/(タイプ2|Type2|モード2|waaw2)/i) ? "waaw2" : "waaw";
+        } else if (json['content'].match(/(ブラー|ぼかし|blur)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "blur";
+        } else if (json['content'].match(/(シャープ|sharpen)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "sharpen";
+        } else if (json['content'].match(/(アンシャープ|unsharp)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "unsharp";
+        } else if (json['content'].match(/(threshold)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "threshold";
+        } else if (json['content'].match(/(油彩|オイルペイント|oilpaint)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "oilpaint";
+        } else if (json['content'].match(/(メタル|metal)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "metal";
+        } else if (json['content'].match(/(エッジ|edge)/i)) {
+            mode["base"] = "effect";
+            mode["type"] = "edge";
+        } else if (json['content'].match(/(火|燃や|burn)/i)) {
+            mode["base"] = "funia";
+            if (json['content'].match(/(写真|photo)/i)) mode["type"] = 12;
+            else mode["type"] = json['content'].match(/(タイプ1|Type1|モード1|gif|動)/i) ? 0 : 1;
+        } else if (json['content'].match(/(お尋ね|wanted)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 2;
+        } else if (json['content'].match(/(タトゥー|tattoo)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 3;
+        } else if (json['content'].match(/(スパイ|シークレット|secret)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 4;
+        } else if (json['content'].match(/(スクリーン|screen)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 5;
+        } else if (json['content'].match(/(シャンパン|champagne)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 6;
+        } else if (json['content'].match(/(トラック|truck)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 7;
+        } else if (json['content'].match(/(ミュージアム|museum)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 8;
+        } else if (json['content'].match(/(ドル|dollar)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 9;
+        } else if (json['content'].match(/(動画|vhs)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 10;
+        } else if (json['content'].match(/(スケッチ|鉛筆|sketch)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 11;
+        } else if (json['content'].match(/(花火|スパークラー|sparkler)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 13;
+        } else if (json['content'].match(/(ギャラリー|gallery)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = json['content'].match(/(タイプ2|Type2|モード2|ギャラリー2|gallery2)/i) ? 15 : 14;
+        } else if (json['content'].match(/(新聞|newspaper)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 16;
+        } else if (json['content'].match(/(東急プラザ)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 17;
+        } else if (json['content'].match(/(シャッター|shutters)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 18;
+        } else if (json['content'].match(/(雷|lightning)/i)) {
+            mode["base"] = "funia";
+            mode["type"] = 19;
+        } else {
+            post("@" + acct + " 画像エフェクトを使用するには、エフェクトモードを指定する必要があるよ！\n画像エフェクトのドキュメント: 準備中", { in_reply_to_id: json['id'] }, "direct");
+            return false;
         }
+        var canvas_origin = createCanvas(image.width, image.height)
+        var ctx = canvas_origin.getContext('2d');
 
-      var blobdata = new Buffer((canvas_origin.toDataURL()).split(",")[1], 'base64');
-      fs.writeFileSync('data/tmp/effect_result'+imagetype, blobdata, 'binary');
-      post_upimg("@" + json["account"]["acct"] + addtext + " "+mode["base"]+":"+mode["type"]+" をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result'+imagetype);
-      } else if (mode["base"] === "effect") {
-        var options = {
-          image : 'data/tmp/effect_user'+imagetype,
-          to : 'data/tmp/effect_result'+imagetype, 
-          level : 5
-       };
-       
-       var callback = function (error) {
-          if(!error) {
-              console.log("The effect was applied to your image !");
-              post_upimg("@" + json["account"]["acct"] + addtext + " "+mode["base"]+":"+mode["type"]+" をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result'+imagetype);
-          }
-       }
-       //https://www.npmjs.com/package/effect
-       if (mode["type"] === "blur") effect.blur(options, callback);
-       if (mode["type"] === "sharpen") effect.sharpen(options, callback);
-       if (mode["type"] === "unsharp") effect.unsharp(options, callback);
-       if (mode["type"] === "threshold") effect.threshold(options, callback);
-       if (mode["type"] === "oilpaint") effect.oilpaint(options, callback);
-       if (mode["type"] === "metal") effect.metal(options, callback);
-       if (mode["type"] === "edge") effect.edge(options, callback);
-      } else if (mode["base"] === "funia") {
-        //http://photofunia.com/
-        var tt = [];
-        tt[0] = "lab/burning-fire";
-        tt[1] = "misc/fire";
-        tt[2] = "posters/wanted";
-        tt[3] = "misc/making_tattoo";
-        tt[4] = "misc/top-secret";
-        tt[5] = "misc/big-screen";
-        tt[6] = "misc/champagne";
-        tt[7] = "misc/truck-advert";
-        tt[8] = "all_effects/museum_kid";
-        tt[9] = "all_effects/100_dollars";
-        tt[10] = "all_effects/vhs";
-        tt[11] = "all_effects/sketch";
-        tt[12] = "all_effects/burning_photo";
-        request.post({
-          url: "http://photofunia.com/categories/"+tt[mode["type"]],
-          formData: {
-            'image': fs.createReadStream('data/tmp/effect_user'+imagetype)
-          },
-          followAllRedirects: true
-        },
-          function (error, response, data) {
-              if(!error && response.statusCode === 200) {
-                const dom = new JSDOM(data)
-                var urld = dom.window.document.getElementById('result-image').src;
-                request({
-                  method: 'GET',
-                  url: urld,
-                  encoding: null
+        if (mode["base"] === "vanila") {
+            if (mode["type"] === "waaw") {
+                ctx.drawImage(image, 0, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(image, -image.width, 0, -image.width / 2, image.height, 0, 0, -image.width / 2, image.height);
+            } else if (mode["type"] === "waaw2") {
+                ctx.scale(-1, 1);
+                ctx.drawImage(image, -image.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(image, 0, 0, image.width / 2, image.height, 0, 0, image.width / 2, image.height);
+            }
+
+            var blobdata = new Buffer((canvas_origin.toDataURL()).split(",")[1], 'base64');
+            fs.writeFileSync('data/tmp/effect_result' + imagetype, blobdata, 'binary');
+            post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + imagetype);
+        } else if (mode["base"] === "effect") {
+            var options = {
+                image: 'data/tmp/effect_user' + imagetype,
+                to: 'data/tmp/effect_result' + imagetype,
+                level: 5
+            };
+
+            var callback = function (error) {
+                if (!error) {
+                    console.log("The effect was applied to your image !");
+                    post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + imagetype);
+                }
+            }
+            //https://www.npmjs.com/package/effect
+            if (mode["type"] === "blur") effect.blur(options, callback);
+            if (mode["type"] === "sharpen") effect.sharpen(options, callback);
+            if (mode["type"] === "unsharp") effect.unsharp(options, callback);
+            if (mode["type"] === "threshold") effect.threshold(options, callback);
+            if (mode["type"] === "oilpaint") effect.oilpaint(options, callback);
+            if (mode["type"] === "metal") effect.metal(options, callback);
+            if (mode["type"] === "edge") effect.edge(options, callback);
+        } else if (mode["base"] === "funia") {
+            //http://photofunia.com/
+            var tt = [];
+            tt[0] = "lab/burning-fire";
+            tt[1] = "misc/fire";
+            tt[2] = "posters/wanted";
+            tt[3] = "misc/making_tattoo";
+            tt[4] = "misc/top-secret";
+            tt[5] = "misc/big-screen";
+            tt[6] = "misc/champagne";
+            tt[7] = "misc/truck-advert";
+            tt[8] = "all_effects/museum_kid";
+            tt[9] = "all_effects/100_dollars";
+            tt[10] = "all_effects/vhs";
+            tt[11] = "all_effects/sketch";
+            tt[12] = "all_effects/burning_photo";
+            tt[13] = "all_effects/sparklers";
+            tt[14] = "all_effects/portrait-gallery";
+            tt[15] = "all_effects/famous-gallery";
+            tt[16] = "all_effects/business-newspaper";
+            tt[17] = "all_effects/tokyo-crossing";
+            tt[18] = "all_effects/roller-shutters";
+            tt[19] = "all_effects/lightning";
+
+            request.post({
+                url: "http://photofunia.com/categories/" + tt[mode["type"]],
+                formData: {
+                    'image': fs.createReadStream('data/tmp/effect_user' + imagetype)
                 },
-                  function (error, response, blob) {
-                      if(!error && response.statusCode === 200) {
-                        filet = urld.match(/\.(jpg|png|gif)/i)[0];
-                        fs.writeFileSync('data/tmp/effect_result'+filet, blob, 'binary');
-                        post_upimg("@" + json["account"]["acct"] + addtext + " "+mode["base"]+":"+mode["type"]+" をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result'+filet);
-                      }
-                  }
-              );
-              }
-          }
-      );
-      }
-})
+                followAllRedirects: true
+            },
+                function (error, response, data) {
+                    if (!error && response.statusCode === 200) {
+                        const dom = new JSDOM(data)
+                        var urld = dom.window.document.getElementById('result-image').src;
+                        request({
+                            method: 'GET',
+                            url: urld,
+                            encoding: null
+                        },
+                            function (error, response, blob) {
+                                if (!error && response.statusCode === 200) {
+                                    filet = urld.match(/\.(jpg|png|gif)/i)[0];
+                                    fs.writeFileSync('data/tmp/effect_result' + filet, blob, 'binary');
+                                    post_upimg("@" + json["account"]["acct"] + addtext + " " + mode["base"] + ":" + mode["type"] + " をエフェクトしたよ！", {}, config.post_privacy, false, 'data/tmp/effect_result' + filet);
+                                }
+                            }
+                        );
+                    }
+                }
+            );
+        }
+    })
 }
 
 function umeru(user, acct) {
