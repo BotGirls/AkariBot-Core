@@ -22,7 +22,7 @@ illust drawn by [@hasitanai](https://github.com/hasitanai)
 > SQLデータは公開していません
 
 ```
-git clone https://github.com/yuzulabo/AkariBot.git
+git clone https://github.com/BotGirls/AkariBot-Core.git
 cd AkariBot
 cp config.sample.js config.js
 vi config.js # トークンなど
@@ -30,3 +30,12 @@ vi config.js # トークンなど
 npm install
 node main.js
 ```
+
+## See others
+
+#### AkariBot
+- [BotGirls/AkariBot-Discord](https://github.com/BotGirls/AkariBot-Discord) - AkariBot Discord部
+- [BotGirls/AkariBot-PHP](https://github.com/BotGirls/AkariBot-PHP) - AkariBot 定期処理部
+
+#### KooriBot
+- [hasitanai/Shio_no_Tsukurikata](https://github.com/hasitanai/Shio_no_Tsukurikata) - こおりちゃん
