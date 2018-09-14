@@ -1,6 +1,7 @@
-![めっちゃかわいいあかりちゃん](https://user-images.githubusercontent.com/14953122/34548580-3a6fe856-f146-11e7-96df-c362c8fb3cea.png)
-by [@hasitanai](https://github.com/hasitanai)
-# AkariBot
+![めっちゃかわいいあかりちゃん](https://user-images.githubusercontent.com/14953122/45546896-b8fd2c80-b859-11e8-8198-eb73ec90573e.png)
+**AkariBot**
+========
+illust drawn by [@hasitanai](https://github.com/hasitanai)
 
 1. ポテイトとたけのこの山脈を開ける
 2. この2つの味を交互に食べる
@@ -17,6 +18,8 @@ by [@hasitanai](https://github.com/hasitanai)
 
 #### Require
 - NodeJS
+- MySQL (or MariaDB)
+> SQLデータは公開していません
 
 ```
 git clone https://github.com/yuzulabo/AkariBot.git
