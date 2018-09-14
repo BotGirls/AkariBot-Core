@@ -17,13 +17,13 @@ illust drawn by [@hasitanai](https://github.com/hasitanai)
 ## Installation
 
 #### Require
-- NodeJS
-- MySQL (or MariaDB)
+- NodeJS - コア処理
+- MySQL (or MariaDB) - 記憶保存
 > SQLデータは公開していません
 
 ```
 git clone https://github.com/BotGirls/AkariBot-Core.git
-cd AkariBot
+cd AkariBot-Core
 cp config.sample.js config.js
 vi config.js # トークンなど
 
